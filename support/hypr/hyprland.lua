@@ -37,8 +37,6 @@ require("modules.binds")
 require("modules.windowrules")
 require("modules.layerrules")
 require("modules.glass")
--- plugin options; each block only applies while its plugin is loaded
-require("modules.plugins")
 -------------------------------
 ---- SETTINGS FROM LUCID   ----
 -------------------------------
