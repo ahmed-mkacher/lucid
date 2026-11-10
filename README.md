@@ -174,13 +174,15 @@ installing to pick them up.
 | `SUPER` + `T` | Theme picker |
 | `SUPER` + `B` | Wallpaper picker |
 | `SUPER` + `SHIFT` + `V` | Clipboard history |
-| `SUPER` + `S` | Settings |
+| `SUPER` + `I` | Settings |
 | `SUPER` + `.` | Emoji picker |
 | `SUPER` + `K` | On-screen keyboard |
-| `SUPER` + `W` | Workspace overview (also: three-finger swipe) |
+| `SUPER` + `Tab` | Workspace overview (also: three-finger swipe) |
+| `SUPER` + `W` | Zen browser (scratchpad) |
+| `SUPER` + `Return` | Terminal |
 | `CTRL` + `ALT` + `TAB` | Window switcher — every window on every workspace, newest first (`+SHIFT` steps back) |
 | `SUPER` + `Esc` | Session screen — lock, sleep, log out, restart, shut down |
-| `SUPER` + `D` / `Print` | Region screenshot |
+| `Print` / `CTRL` + `SUPER` + `S` | Region screenshot |
 | `SUPER` + `Print` | Full screenshot |
 | `SUPER` + `SHIFT` + `T` | Copy text from a region (OCR) |
 | `SUPER` + `SHIFT` + `C` | Pick a colour off the screen |
@@ -188,18 +190,20 @@ installing to pick them up.
 | `SUPER` + `C` | Close window |
 | `SUPER` + `V` | Toggle float |
 | `SUPER` + `1`–`0` | Switch workspace (`+SHIFT` moves the window) |
-| `SUPER` + `SHIFT` + `S` | Scratchpad, or put away whichever special workspace is up |
-| `SUPER` + `ALT` + `S` | Stash the focused window in the scratchpad, or send it back |
-| `SUPER` + `SHIFT` + `M` | Music workspace |
-| `SUPER` + `SHIFT` + `D` | Comms workspace |
-| `SUPER` + `SHIFT` + `R` | To-do workspace |
-| `CTRL` + `SHIFT` + `Esc` | System monitor workspace |
+| `SUPER` + `S` | Scratchpad workspace |
+| `SUPER` + `SHIFT` + `S` | Move window to scratchpad |
+| `SUPER` + `A` | Music workspace |
+| `SUPER` + `SHIFT` + `A` | Move window to music workspace |
+| `SUPER` + `D` | Comms workspace (show, no launch) |
+| `SUPER` + `SHIFT` + `D` | Move window to comms workspace |
+| `SUPER` + `R` | To-do workspace |
+| `SUPER` + `SHIFT` + `R` | Move window to to-do workspace |
+| `SUPER` + `X` | System monitor workspace |
+| `SUPER` + `SHIFT` + `X` | Move window to system monitor workspace |
 | `SUPER` + arrows | Move focus |
-| `SUPER` + `R` | Reload Hyprland |
+| `CTRL` + `ALT` + `R` | Reload Hyprland |
 | `F1`–`F6` | Volume, mic, brightness |
-| `F9` | Terminal |
 | `F10` | Lock |
-| `F12` | Calculator |
 
 Ran with `--no-hypr`, or want to bind things yourself? Everything is exposed
 over IPC:
@@ -221,7 +225,7 @@ and bind its functions the way Lucid's `modules/binds.lua` does:
 
 ```lua
 local specials = require("modules.specials")
-hl.bind("SUPER + SHIFT + M", specials.toggle("music"))
+hl.bind("SUPER + A", specials.show("music"))
 ```
 
 Keep the `--`. It is only strictly required when the call takes an argument —
@@ -561,18 +565,17 @@ the same keys.
 
 | Keys | Workspace | Opens |
 | --- | --- | --- |
-| `SUPER` + `SHIFT` + `S` | Scratchpad | Nothing of its own — somewhere to park windows |
-| `SUPER` + `SHIFT` + `M` | Music | Spotify, Feishin, Supersonic, Cider, YouTube Music, TIDAL… |
-| `SUPER` + `SHIFT` + `D` | Comms | Discord, Vesktop, Telegram, Signal, Element, Slack… |
-| `SUPER` + `SHIFT` + `R` | To-do | Todoist, Planify, Errands, Endeavour, Obsidian… |
-| `CTRL` + `SHIFT` + `Esc` | System | btop in a terminal, Mission Center, Resources… |
+| `SUPER` + `S` | Scratchpad | Nothing of its own — somewhere to park windows |
+| `SUPER` + `A` | Music | Spotify, Feishin, Supersonic, Cider, YouTube Music, TIDAL… |
+| `SUPER` + `D` | Comms | Show only — pulls in running apps, starts nothing |
+| `SUPER` + `R` | To-do | Todoist, Planify, Errands, Endeavour, Obsidian… |
+| `SUPER` + `X` | System | btop in a terminal, Mission Center, Resources… |
 
-A key starts its workspace's app if it is not running, and pulls it back in if
-you moved it somewhere else; opened from the launcher or the dock, the app lands
-in its workspace too. `SUPER` + `ALT` + `S` stashes the focused window in the
-scratchpad and, pressed inside a special workspace, sends it back. The
-scratchpad key also puts away whichever workspace is up, so one key always
-returns you to what you were doing.
+A key shows its workspace, pulls in its apps if they are running, and hides it
+again when pressed once more. `SUPER` + `SHIFT` + the same key moves the focused
+window there. Browsers and chat apps open in their workspace on their own,
+whether launched from the key, the launcher or the dock. `SUPER` + `W` opens
+the scratchpad and starts Zen in it.
 
 **Settings → Workspaces** picks each one's apps, turns any of them off, and sets
 how far the screen behind dims, whether it blurs too, how much margin the windows
@@ -1220,11 +1223,11 @@ or `--no-look`. The binds shell out to these, so a missing one is a dead key:
 
 | Package | Backs |
 | --- | --- |
-| `kitty` | Terminal (`F9`), and the themed terminal colours |
+| `kitty` | Terminal, and the themed terminal colours |
 | `fish` | The shell kitty opens |
 | `nautilus` | Files (`SUPER`+`E`) |
 | `playerctl` | The media keys |
-| `gnome-calculator` | Calculator (`F12`) |
+| `gnome-calculator` | Calculator |
 | `starship` | The prompt |
 | `ttf-jetbrains-mono-nerd` | The glyphs the prompt and kitty are drawn with |
 | `adw-gtk-theme` | Provides `adw-gtk3-dark`, the GTK theme Lucid selects |

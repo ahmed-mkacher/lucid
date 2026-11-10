@@ -1510,20 +1510,23 @@ if [[ $HYPR_LUA_INSTALLED -eq 1 ]]; then
   and layer rules are in place, and modules/autostart.lua starts the shell
   on login.
 
-    SUPER            launcher        SUPER+W      workspaces
-    SUPER+S          settings        SUPER+T      theme picker
+    SUPER            launcher        SUPER+Tab    workspaces
+    SUPER+I          settings        SUPER+T      theme picker
     SUPER+period     emoji           SUPER+B      wallpaper
     SUPER+P          commands        SUPER+E      files
     SUPER+C          close window    SUPER+V      float
-    SUPER+D / Print  screenshot      F10          lock
-    SUPER+R          reload hypr     F9           terminal
-    SUPER+Escape     session         CTRL+ALT+TAB switch windows
+    SUPER+Return     terminal        SUPER+W      Zen browser
+    SUPER+Escape     session         F10          lock
+    CTRL+ALT+R       reload hypr     CTRL+ALT+TAB switch windows
 
-  Special workspaces slide over whatever you are on; the same keys hide them:
+  Special workspaces slide over whatever you are on; the same keys hide them.
+  SUPER+Shift plus the same key moves the focused window there:
 
-    SUPER+SHIFT+S    scratchpad      SUPER+ALT+S  stash a window
-    SUPER+SHIFT+M    music           SUPER+SHIFT+D  comms
-    SUPER+SHIFT+R    to-do           CTRL+SHIFT+ESC system monitor
+    SUPER+S          scratchpad      SUPER+Shift+S  move to scratchpad
+    SUPER+A          music           SUPER+Shift+A  move to music
+    SUPER+D          comms (show)    SUPER+Shift+D  move to comms
+    SUPER+R          to-do           SUPER+Shift+R  move to to-do
+    SUPER+X          system monitor  SUPER+Shift+X  move to system monitor
 
   ${b}The new binds are not live yet${r} — run ${b}hyprctl reload${r}, or log out
   and back in to pick up the autostart too.
