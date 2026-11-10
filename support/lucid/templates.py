@@ -92,11 +92,10 @@ def catalog():
     starship_hook = 'for sh in fish bash zsh; do pkill -WINCH -x "$sh" 2>/dev/null; done; true'
     entries = [
         ("quickshell", "Lucid's own palette", "quickshell-colors.json", "~/.cache/quickshell/matugen.json", "always", ""),
-        ("vscode-raw", "VSCodium and VS Code", "vscode-colors", "~/.cache/matugen/vscode-colors", "always", ""),
-        ("vscode-json", "VSCodium and VS Code", "vscode-colors.json", "~/.cache/matugen/vscode-colors.json", "always", ""),
         ("hyprland", "Hyprland borders", "hyprland-colors.lua", "~/.config/hypr/colors.conf", "dir:~/.config/hypr", ""),
         ("kitty", "kitty", "kitty.conf", "~/.config/kitty/matugen-colors.conf", "cmd:kitty",
          "killall -SIGUSR1 kitty 2>/dev/null || true"),
+        ("foot", "foot", "foot.ini", "~/.config/foot/lucid-colors.ini", "cmd:foot", ""),
         ("starship", "Starship prompt", "starship-colors.toml", "~/.config/starship.toml", "cmd:starship", starship_hook),
         ("gtk3", "GTK 3 apps", "gtk-colors.css", "~/.config/gtk-3.0/colors.css", "always", ""),
         ("gtk4", "GTK 4 apps", "gtk-colors.css", "~/.config/gtk-4.0/colors.css", "always", ""),

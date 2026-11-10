@@ -64,8 +64,10 @@ That's it — the installer does the rest:
 2. **Installs dependencies** — finds `paru` or `yay` and uses it, falling back
    to `pacman` for repo packages. It lists everything and asks before touching
    your system. Say no and it carries on, telling you which features won't work.
-   This includes the apps Lucid ships pinned to the dock — several GB, mostly
-   from the AUR. `--no-apps` skips them.
+   It also offers an app picker for a browser, terminal, file manager, editor
+   and office suite, plus notes apps; the apps are optional, and anything
+   already installed starts ticked. The dock is not part of this: its pins are
+   whatever apps you already have.
 3. **Copies the shell** to `~/.config/quickshell`, moving any existing config to
    `~/.config/quickshell.backup-<timestamp>` first.
 4. **Sets up Hyprland** — `hyprland.lua` and its modules: the keybinds, the
@@ -74,14 +76,11 @@ That's it — the installer does the rest:
    asked first; `--no-hypr` keeps yours untouched.
 5. **Sets up theming** — the palettes, the wallpaper hook, and the matugen
    template. An existing `matugen/config.toml` is appended to, never replaced.
-6. **Applies the look** — kitty's colours, its opacity and its fish shell, the
-   starship prompt (wired into `.bashrc`, `.zshrc` and `config.fish`), a
-   fastfetch config that wears the theme (only where you have none), the
-   VSCode/VSCodium Matugen theme, and the GTK theme: `adw-gtk3-dark` with the
-   FairyWren icons, written to `gsettings` and to both `gtk-3.0` and `gtk-4.0`
-   `settings.ini`. A `kitty.conf` or prompt an earlier release installed, and
-   nobody has changed since, is swapped for the current one, with a backup.
-   `--no-look` skips this.
+6. **Applies the look** — a checklist of three, each optional: a fastfetch
+   config that wears the theme (only where you have none), foot's colour
+   include, and kitty's colours, opacity and fish shell. Tick an item and only
+   that item is touched; nothing starts ticked unless its config is already
+   Lucid's. `--no-look` skips the checklist.
 7. **Pins the dock** — reads your installed `.desktop` files and pins the real
    apps, so the dock is never a row of blank letter tiles.
 8. **Offers to restart** a running instance onto the new files.
@@ -148,12 +147,39 @@ enough that it is worth installing fresh.
 | --- | --- |
 | `--no-theming` | Skips the palette layer. Leaves `~/.config/lucid` and `~/.config/matugen` alone — use this if you already have a matugen setup you don't want touched. |
 | `--no-hypr` | Keeps your Hyprland config. Lucid's binds, window rules, blur and autostart are not installed. |
-| `--no-apps` | Doesn't install the apps the dock ships pinned (Zen, VSCodium, Spotify, Vesktop, Files, Steam, Proton VPN). The dock then pins whatever equivalents you already have. |
-| `--no-look` | Doesn't touch `kitty.conf`, `starship.toml`, the fastfetch config, your shell rc files, VSCode settings, or the GTK theme and icons. |
+| `--no-apps` | Skips the app picker: no apps are installed and the dock is left unpinned. |
+| `--no-look` | Skips the look checklist: `fastfetch`, foot's colour include and the kitty config are left alone. |
 | `--no-wallpapers` | Doesn't copy the bundled wallpapers into `~/Pictures/wallpapers`. They are ~180 MB, so this is worth passing on a small disk or a slow link. |
 | `--with-hypr` | Reinstalls Lucid's Hyprland config even when one is already in place. |
 | `--skip-deps` | Never installs packages, just reports what's missing. |
-| `-y`, `--yes` | Accept every prompt. |
+| `-y`, `--yes` | Accept every prompt. Skips the app picker, so no apps are installed. |
+
+### Picking apps
+
+Unless you pass `--no-apps` or `-y`, or stdin is not a terminal, the installer
+draws a list of optional apps grouped by browser, terminal, file manager,
+editor, office suite and notes. Apps already installed start ticked. Nothing
+else is installed unless you tick it.
+
+| Key | Does |
+| --- | --- |
+| Up/Down or `k`/`j` | Move the highlight |
+| Space | Tick or untick the highlighted app |
+| `d` | Make it its section's default (press again on the default to clear it) |
+| Enter | Finish |
+
+Each section has at most one default, and only the sections with a bind can
+hold one: `d` does nothing on the office suite or notes, or anywhere else. The
+browser default is what `SUPER`+`W` opens; the terminal default is
+`SUPER`+`Return`; the **file manager default is what `SUPER`+`E` opens**; the
+editor default is `SUPER`+`C`. A section with no default keeps the shipped app.
+Notes apps open in the To-do workspace (`SUPER`+`R`). Your chosen packages join
+the same repo/AUR install and confirmation as the rest of the dependencies.
+
+After it, a second checklist offers the look: **fastfetch** (its config),
+**foot** (the palette include) and **kitty** (config, matugen include, glass
+include and fish). Each runs only its own piece, and nothing is preselected
+unless that config is already Lucid's.
 
 Re-running the installer is how you update. It moves your existing
 `~/.config/quickshell` to `~/.config/quickshell.backup-<timestamp>`, installs
@@ -178,16 +204,17 @@ installing to pick them up.
 | `SUPER` + `.` | Emoji picker |
 | `SUPER` + `K` | On-screen keyboard |
 | `SUPER` + `Tab` | Workspace overview (also: three-finger swipe) |
-| `SUPER` + `W` | Zen browser (scratchpad) |
-| `SUPER` + `Return` | Terminal |
+| `SUPER` + `W` | Browser (scratchpad; the picker's browser default) |
+| `SUPER` + `Return` | Terminal (the picker's terminal default) |
 | `CTRL` + `ALT` + `TAB` | Window switcher — every window on every workspace, newest first (`+SHIFT` steps back) |
 | `SUPER` + `Esc` | Session screen — lock, sleep, log out, restart, shut down |
 | `Print` / `CTRL` + `SUPER` + `S` | Region screenshot |
 | `SUPER` + `Print` | Full screenshot |
 | `SUPER` + `SHIFT` + `T` | Copy text from a region (OCR) |
 | `SUPER` + `SHIFT` + `C` | Pick a colour off the screen |
-| `SUPER` + `E` | Files |
-| `SUPER` + `C` | Close window |
+| `SUPER` + `E` | File manager (the picker's file manager default) |
+| `SUPER` + `C` | Editor (the picker's editor default) |
+| `SUPER` + `Q` | Close window |
 | `SUPER` + `V` | Toggle float |
 | `SUPER` + `1`–`0` | Switch workspace (`+SHIFT` moves the window) |
 | `SUPER` + `S` | Scratchpad workspace |
@@ -573,9 +600,9 @@ the same keys.
 
 A key shows its workspace, pulls in its apps if they are running, and hides it
 again when pressed once more. `SUPER` + `SHIFT` + the same key moves the focused
-window there. Browsers and chat apps open in their workspace on their own,
-whether launched from the key, the launcher or the dock. `SUPER` + `W` opens
-the scratchpad and starts Zen in it.
+window there. Browsers, chat apps and notes apps open in their workspace on
+their own, whether launched from the key, the launcher or the dock. `SUPER` + `W`
+opens the scratchpad and starts Zen in it.
 
 **Settings → Workspaces** picks each one's apps, turns any of them off, and sets
 how far the screen behind dims, whether it blurs too, how much margin the windows
@@ -1172,8 +1199,8 @@ python3 ~/.config/lucid/palette-edit.py export ~/.cache/quickshell/matugen.json 
 
 ## Requirements
 
-Arch Linux and Hyprland. The installer handles all of this, listed here so
-you know what's being pulled in.
+Arch Linux and Hyprland. What the installer pulls in is listed below, along
+with the packages it leaves to you, so you know what backs each feature.
 
 **Required** — the shell won't start without these:
 
@@ -1186,18 +1213,13 @@ you know what's being pulled in.
 | `matugen`, `jq` | Wallpaper-derived colours, theme switching |
 | `git` | Importing a theme from a scheme repo on Settings → Theme |
 | `awww` | Setting the wallpaper |
-| `python-pywal` | The Pywal theme |
 | `networkmanager` | Wi-Fi panel |
 | `qrencode` | The QR code that shares a saved Wi-Fi network. Without it the password still shows, with no code |
 | `bluez`, `bluez-utils` | Bluetooth panel and the Bluetooth settings page |
-| `bluez-obex`, `python-gobject` | Sending and receiving files over Bluetooth. Without `bluez-obex` the page says so, files sent to the machine are turned away and sending says what is missing |
-| `kdeconnect`, `python-gobject` | The KDE Connect page. The daemon is the backend and starts itself; `python-gobject` backs the bridge Lucid talks to it through. Without either the page says so and does nothing else |
-| `sshfs` | Browsing a phone's files from the phone widget or the KDE Connect page. Without it KDE Connect cannot mount the phone and the button does nothing |
+| `bluez-obex` | Sending and receiving files over Bluetooth. Without it the page says so, files sent to the machine are turned away and sending says what is missing |
 | `libpulse`, `wireplumber` | Volume, audio devices, and playing Lucid's sounds |
 | `inotify-tools` | The camera on/off toast and sound. Without it the camera is never watched; nothing else changes |
 | `smartmontools`, `udisks2` | The Storage page's drive health and mounting. Without them those two rows say so; the map and the cleanup work either way |
-| `ffmpegthumbnailer`, `gvfs` | The desktop icons: thumbnails of videos and music with cover art, and the drives and Trash shown on the desktop |
-| `pipewire-audio`, `sound-theme-freedesktop` | The Sound page's Left/Right test: `pw-play`, and the voice that names each side. Without them the test plays nothing |
 | `brightnessctl`, `upower` | Brightness, battery |
 | `hyprsunset` | Night light. Lucid starts it when night light first comes on and talks to it over `hyprctl hyprsunset`; one you already run is used as it is, and never reset unless Lucid warmed it |
 | `hypridle` | The Idle page: dimming, locking, screen off and suspend when you walk away. Without it the page says so and writes nothing |
@@ -1218,32 +1240,30 @@ you know what's being pulled in.
 | `librsvg` | Turning the pointer's shadow off — the cursor theme is rendered again from its vector sources |
 | `noto-fonts-emoji` | Emoji rendering |
 
-**The Hyprland config and the look** — installed unless you pass `--no-hypr`
-or `--no-look`. The binds shell out to these, so a missing one is a dead key:
+**The Hyprland config and the look** — set up unless you pass `--no-hypr`
+or `--no-look`. These packages back it; the binds shell out to them, so a
+missing one is a dead key:
 
 | Package | Backs |
 | --- | --- |
-| `kitty` | Terminal, and the themed terminal colours |
-| `fish` | The shell kitty opens |
-| `nautilus` | Files (`SUPER`+`E`) |
+| `foot` | Terminal (`SUPER`+`Return`) — optional, chosen in the app picker or installed by you |
+| `thunar` | Files (`SUPER`+`E`) — optional, chosen in the app picker or installed by you |
+| `fish` | The shell the terminal opens |
 | `playerctl` | The media keys |
-| `gnome-calculator` | Calculator |
-| `starship` | The prompt |
-| `ttf-jetbrains-mono-nerd` | The glyphs the prompt and kitty are drawn with |
-| `adw-gtk-theme` | Provides `adw-gtk3-dark`, the GTK theme Lucid selects |
-| `papirus-icon-theme` | Fallback icons — FairyWren declares `Inherits=Papirus` |
+| `starship` | A prompt, if you use one: Lucid repaints its palette, never its shape |
+| `ttf-jetbrains-mono-nerd` | The glyphs fastfetch and kitty are drawn with |
 
-**The dock's default pins** — installed unless you pass `--no-apps`. Several
-GB, mostly from the AUR:
+**The dock's pins** — nothing is installed for them. The installer reads your
+`.desktop` files and pins the first app it finds for each slot: a browser,
+VSCodium or another editor, Spotify, Vesktop, a file manager, Steam, Proton VPN
+and a terminal. `--no-apps` leaves the dock unpinned.
 
-`zen-browser-bin` · `vscodium-bin` · `spotify` · `vesktop` · `nautilus` ·
-`steam` · `proton-vpn-gtk-app`
-
-Anything you already have an equivalent of is left alone — `vscodium` counts
-for `vscodium-bin`, `discord` for `vesktop`, and so on. `steam` is skipped
-unless the `multilib` repo is enabled; with it come the Vulkan drivers for the
-graphics cards the machine has (`vulkan-radeon`, `vulkan-intel`, NVIDIA's own or
-nouveau, and their 32-bit halves), so pacman never has to guess one.
+**Optional — not installed:** `kdeconnect` with `python-gobject` for the Phone
+page (`sshfs` to browse a phone's files), `ffmpegthumbnailer` for video and
+cover-art thumbnails on the desktop, `gvfs` for the drives and Trash shown
+there, `pipewire-audio` and `sound-theme-freedesktop` for the Sound page's
+Left/Right test, `python-pywal` for the Pywal theme, and `papirus-icon-theme` for a complete
+icon theme.
 
 Lucid uses Hyprland-specific APIs for workspaces and window management. It
 will not work on other compositors.
@@ -1314,10 +1334,9 @@ Every surface is scriptable. `qs ipc call -- <target> <function> [arg]`:
 
 Moves `~/.config/quickshell` aside rather than deleting it, so your settings
 survive. Packages installed by `install.sh` are left alone. It prints what else
-it left in place — the matugen template blocks, `~/.config/hypr`,
-`starship.toml` and its init lines in your rc files, the fastfetch config,
-kitty's colour and opacity includes — each with a timestamped backup beside it, so you can undo
-them by hand.
+it left in place — the matugen template blocks, `~/.config/hypr`, the
+fastfetch config, foot's and kitty's colour includes — each with a timestamped
+backup beside it, so you can undo them by hand.
 
 ## Troubleshooting
 
@@ -1348,22 +1367,6 @@ pkill swaync
 
 The installer offers to do this for you.
 
-
-**GTK apps are light, or their icons are wrong.**
-Under Hyprland there is no xsettings daemon, so GTK3/GTK4 read
-`~/.config/gtk-{3,4}.0/settings.ini` while GNOME apps and portals read
-`gsettings`. The installer writes both. If only some apps changed, check they
-agree:
-
-```sh
-gsettings get org.gnome.desktop.interface gtk-theme    # adw-gtk3-dark
-gsettings get org.gnome.desktop.interface icon-theme   # FairyWren_Dark
-grep -E 'theme-name' ~/.config/gtk-3.0/settings.ini ~/.config/gtk-4.0/settings.ini
-```
-
-The icons live in `~/.local/share/icons/FairyWren_Dark`. If that directory is
-missing the installer could not reach GitLab — clone it by hand from
-`https://gitlab.com/FreshDoctor/FairyWren-Icons`.
 
 **Nothing appears when I run `qs`.** Check `qs log` for QML errors, and
 confirm you're on Hyprland — Lucid needs its Wayland protocols.
