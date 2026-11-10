@@ -8,7 +8,7 @@ import qs.lucidui
 Item {
     id: face
 
-    // "apps" | "commands" | "web" | "run" | "emoji" | "theme" | "wallpaper" | "live" | "clipboard"
+    // "apps" | "commands" | "keybinds" | "web" | "run" | "emoji" | "theme" | "wallpaper" | "live" | "clipboard"
     property string mode: "apps"
     property var model: null
     property var wallpaperModel: null
@@ -46,12 +46,14 @@ Item {
         "run": "Type a command line",
         "emoji": "Find an emoji",
         "commands": "Search commands",
+        "keybinds": "Search keybinds",
         "theme": "Search themes",
         "wallpaper": "Search wallpapers",
         "live": "Search live wallpapers"
     })[face.displayMode] || "Search apps and settings"
     readonly property string modeIcon: ({
         "commands": "keyboard_command_key",
+        "keybinds": "keyboard",
         "clipboard": "content_paste",
         "wallpaper": "wallpaper",
         "live": "movie",
@@ -89,6 +91,10 @@ Item {
         "key": "commands",
         "label": "Commands",
         "icon": "keyboard_command_key"
+    }, {
+        "key": "keybinds",
+        "label": "Keybinds",
+        "icon": "keyboard"
     }, {
         "key": "clipboard",
         "label": "Clipboard",
@@ -171,6 +177,7 @@ Item {
 
     function resultsChanged() {
         resultList.ensureSelectable();
+        Qt.callLater(resultList.relayout);
         face.resultsRevision++;
     }
 
@@ -365,6 +372,9 @@ Item {
 
                 if (face.displayMode === "clipboard")
                     return Clip.available ? "Nothing copied yet" : "Clipboard history is off";
+
+                if (face.displayMode === "keybinds")
+                    return "No keybinds found";
 
                 return "Nothing matches that";
             }

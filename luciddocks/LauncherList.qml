@@ -186,6 +186,10 @@ Item {
 
     }
 
+    function relayout() {
+        view.forceLayout();
+    }
+
     function scrollToCurrent() {
         var top = list.rowY(list.currentIndex);
         var bottom = top + list.rowHeight(list.currentIndex);
@@ -273,9 +277,13 @@ Item {
         bottomMargin: list.bottomPad
         model: list.model
         currentIndex: list.currentIndex
-        onCountChanged: list.ensureSelectable()
+        onCountChanged: {
+            list.ensureSelectable();
+            Qt.callLater(list.relayout);
+        }
         highlightFollowsCurrentItem: false
         interactive: true
+        reuseItems: false
         boundsBehavior: Flickable.StopAtBounds
         z: 1
 
@@ -302,66 +310,6 @@ Item {
                 scrollAnim.to = target;
                 scrollAnim.start();
             }
-        }
-
-        add: Transition {
-            NumberAnimation {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: Theme.durQuick
-                easing.type: Easing.OutCubic
-            }
-
-        }
-
-        populate: Transition {
-            SequentialAnimation {
-                PauseAnimation {
-                    duration: Theme.ms(Math.max(0, Math.min(view.ViewTransition.index, 9)) * 22)
-                }
-
-                ParallelAnimation {
-                    NumberAnimation {
-                        properties: "opacity"
-                        from: 0
-                        to: 1
-                        duration: Theme.ms(200)
-                        easing.type: Easing.OutCubic
-                    }
-
-                    NumberAnimation {
-                        properties: "y"
-                        from: view.ViewTransition.destination.y + 12
-                        duration: Theme.durEnter
-                        easing.type: Easing.Bezier
-                        easing.bezierCurve: Theme.easeEmphasizedDecel
-                    }
-
-                }
-
-            }
-
-        }
-
-        remove: Transition {
-            NumberAnimation {
-                property: "opacity"
-                from: 1
-                to: 0
-                duration: Theme.durExit
-                easing.type: Easing.InCubic
-            }
-
-        }
-
-        displaced: Transition {
-            NumberAnimation {
-                properties: "y"
-                duration: Theme.durShort
-                easing.type: Easing.OutCubic
-            }
-
         }
 
         ScrollBar.vertical: ScrollBar {
@@ -442,6 +390,7 @@ Item {
 
             width: list.rowWidth
             height: rowItem.isHeader ? Prefs.launcherRowHeader : (rowItem.isCalc ? Prefs.launcherRowCalc : (rowItem.subtitle !== "" ? Prefs.launcherRowTwo : Prefs.launcherRowOne))
+            clip: true
             opacity: rowItem.disabled ? Theme.disabledContent : 1
             onThumbChanged: rowItem.askThumb()
             Component.onCompleted: rowItem.askThumb()

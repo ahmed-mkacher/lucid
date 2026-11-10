@@ -456,6 +456,9 @@ PanelWindow {
         if (q.indexOf(">live") === 0)
             return "live";
 
+        if (q.indexOf(">keys") === 0)
+            return "keybinds";
+
         if (q.indexOf(">") === 0)
             return "commands";
 
@@ -484,6 +487,9 @@ PanelWindow {
 
         if (mode === "live")
             return ">live";
+
+        if (mode === "keybinds")
+            return ">keys";
 
         if (mode === "commands")
             return ">";
@@ -1338,6 +1344,35 @@ PanelWindow {
                     rows = rows.concat(found);
                 }
             }
+        } else if (mode === "keybinds") {
+            var cats = Keybinds.categories;
+            for (var cat = 0; cat < cats.length; cat++) {
+                var group = [];
+                for (var bi = 0; bi < Keybinds.binds.length; bi++) {
+                    var bind = Keybinds.binds[bi];
+                    if (bind.enabled === false)
+                        continue;
+
+                    if (Keybinds.categoryOf(bind) !== cats[cat])
+                        continue;
+
+                    if (!Keybinds.matches(bind, q))
+                        continue;
+
+                    group.push(bind);
+                }
+                if (group.length === 0)
+                    continue;
+
+                rows.push(dockWindow.headerRow(cats[cat]));
+                for (var gi = 0; gi < group.length; gi++) {
+                    var combo = Keybinds.tokens(group[gi].keys).join(" + ");
+                    rows.push(dockWindow.makeRow("keybind", "bind-" + group[gi].id, Keybinds.displayDesc(group[gi]), combo, {
+                        "glyph": "keyboard",
+                        "payload": combo
+                    }));
+                }
+            }
         } else if (mode === "web") {
             var wq = dockWindow.queryFor(raw);
             if (wq !== "")
@@ -1394,35 +1429,9 @@ PanelWindow {
     }
 
     function syncResults(rows) {
-        // a key can repeat: frequent apps show up again in the full list
-        var wanted = {};
-        for (var j = 0; j < rows.length; j++) wanted[rows[j].key] = (wanted[rows[j].key] || 0) + 1;
-        for (var i = resultsModel.count - 1; i >= 0; i--) {
-            var key = resultsModel.get(i).key;
-            if (!wanted[key])
-                resultsModel.remove(i, 1);
-            else
-                wanted[key]--;
-        }
-        for (var k = 0; k < rows.length; k++) {
-            var existing = -1;
-            for (var m = k; m < resultsModel.count; m++) {
-                if (resultsModel.get(m).key === rows[k].key) {
-                    existing = m;
-                    break;
-                }
-            }
-            if (existing === -1) {
-                resultsModel.insert(k, rows[k]);
-            } else {
-                if (existing !== k)
-                    resultsModel.move(existing, k, 1);
-
-                resultsModel.set(k, rows[k]);
-            }
-        }
-        if (resultsModel.count > rows.length)
-            resultsModel.remove(rows.length, resultsModel.count - rows.length);
+        resultsModel.clear();
+        for (var i = 0; i < rows.length; i++)
+            resultsModel.append(rows[i]);
 
         dockWindow.resultsHeight = dockWindow.measure(rows);
         var pickable = 0;
@@ -1495,6 +1504,9 @@ PanelWindow {
             dockWindow.switchTheme(row.payload);
         } else if (row.kind === "command") {
             dockWindow.runCommand(row.payload);
+        } else if (row.kind === "keybind") {
+            Quickshell.execDetached(["wl-copy", "--", row.payload]);
+            dockWindow.menuOpen = false;
         } else if (row.kind === "web") {
             dockWindow.menuOpen = false;
             Qt.openUrlExternally(row.payload);
@@ -2129,6 +2141,10 @@ PanelWindow {
 
         function theme(): void {
             dockWindow.openLauncher(">theme");
+        }
+
+        function keybinds(): void {
+            dockWindow.openLauncher(">keys");
         }
 
         // qs ipc call launcher power: the full-screen session screen
