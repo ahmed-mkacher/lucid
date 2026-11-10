@@ -6,7 +6,7 @@ Column {
     id: page
 
     readonly property var blurbs: ({
-        "special": "shows it, and puts away any other workspace that is up. " + Specials.keysText(Specials.stashKeys) + " parks the window you are in here, and sends it back out again.",
+        "special": "shows it, and puts away any other workspace that is up.",
         "music": "puts your player over whatever you are doing.",
         "comms": "brings up chat and mail, out of the way until you want them.",
         "todo": "brings up your list, wherever you are.",

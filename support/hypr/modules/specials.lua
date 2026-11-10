@@ -134,40 +134,60 @@ function M.apply()
     if next(opts) then hl.config(opts) end
 end
 
--- show a workspace with its apps, or hide it if it is already up. an app that
--- is not running is started inside it, and one running elsewhere is pulled in
-function M.toggle(name)
+-- open a workspace and hide it again if already up. M.toggle also starts the
+-- workspace's apps; M.show only pulls in apps already running.
+local function open(name, launch)
     local target = "special:" .. name
-    return function()
-        local cfg = config()
-        local ws = space(cfg, name)
-        if ws.enabled == false then return end
-        local shown = hl.get_active_special_workspace()
-        if shown and shown.name == target then
-            hl.dispatch(hl.dsp.workspace.toggle_special(name))
-            return
-        end
-        hl.dispatch(hl.dsp.focus({ workspace = target }))
-        local wins = hl.get_windows() or {}
-        local pulled = nil
-        for _, app in ipairs(ws.apps or {}) do
-            local running = false
-            for _, w in ipairs(wins) do
-                if owns(app, w) then
-                    running = true
-                    if cfg.keep ~= false and not (w.workspace and w.workspace.name == target) then
-                        hl.dispatch(hl.dsp.window.move({ window = w, workspace = target, follow = false }))
-                        pulled = pulled or w
-                    end
+    local cfg = config()
+    local ws = space(cfg, name)
+    if ws.enabled == false then return end
+    local shown = hl.get_active_special_workspace()
+    if shown and shown.name == target then
+        hl.dispatch(hl.dsp.workspace.toggle_special(name))
+        return
+    end
+    hl.dispatch(hl.dsp.focus({ workspace = target }))
+    local wins = hl.get_windows() or {}
+    local pulled = nil
+    for _, app in ipairs(ws.apps or {}) do
+        local running = false
+        for _, w in ipairs(wins) do
+            if owns(app, w) then
+                running = true
+                if cfg.keep ~= false and not (w.workspace and w.workspace.name == target) then
+                    hl.dispatch(hl.dsp.window.move({ window = w, workspace = target, follow = false }))
+                    pulled = pulled or w
                 end
             end
-            if not running and type(app.cmd) == "string" and app.cmd ~= "" then
-                if roams(app) then launches[name] = { app = app, at = os.time() } end
-                hl.dispatch(hl.dsp.exec_cmd(app.cmd, { workspace = target }))
-            end
         end
-        -- a window moved in without follow leaves the keyboard behind the dim
-        if pulled then hl.dispatch(hl.dsp.focus({ window = pulled })) end
+        if launch and not running and type(app.cmd) == "string" and app.cmd ~= "" then
+            if roams(app) then launches[name] = { app = app, at = os.time() } end
+            hl.dispatch(hl.dsp.exec_cmd(app.cmd, { workspace = target }))
+        end
+    end
+    -- a window moved in without follow leaves the keyboard behind the dim
+    if pulled then hl.dispatch(hl.dsp.focus({ window = pulled })) end
+end
+
+function M.toggle(name)
+    return function() open(name, true) end
+end
+
+-- show a workspace without starting anything, pulling in only apps already up
+function M.show(name)
+    return function() open(name, false) end
+end
+
+-- start one app in a workspace without toggling away a workspace already up.
+-- the browser key uses it to open Zen in the scratchpad
+function M.launch(name, cmd)
+    return function()
+        local target = "special:" .. name
+        local shown = hl.get_active_special_workspace()
+        if not (shown and shown.name == target) then
+            hl.dispatch(hl.dsp.focus({ workspace = target }))
+        end
+        hl.dispatch(hl.dsp.exec_cmd(cmd, { workspace = target }))
     end
 end
 
