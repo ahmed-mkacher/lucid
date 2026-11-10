@@ -481,7 +481,6 @@ apply_app_binds() {
     done
 }
 
-missing=()
 DEPS_OK=1
 
 step "Resolving dependencies"
@@ -510,16 +509,34 @@ if [[ $WITH_APPS -eq 1 && $ASSUME_YES -eq 0 && -t 0 ]]; then
     fi
 fi
 
-for p in "${WANTED[@]}"; do
-    have_pkg "$p" || missing+=("$p")
-done
+# the whole want list: every package, installed or not, with why it is wanted.
+# WANTED repeats a name when a picked app is one Lucid already needs, so each
+# is shown once. missing is filled here, in the same pass, for the steps below
+want_lines() {
+    local p st
+    local -A shown=()
+    missing=()
+    say "  what Lucid wants:"
+    for p in "${WANTED[@]}"; do
+        [[ -n ${shown[$p]:-} ]] && continue
+        shown[$p]=1
+        st=missing
+        if have_pkg "$p"; then
+            st=installed
+        else
+            missing+=("$p")
+        fi
+        printf '    %-26s %-10s %s\n' "$p" "$st" "${PKG_WHY[$p]:-picked from the app list}"
+    done
+}
+
+want_lines
 
 if [[ ${#missing[@]} -eq 0 ]]; then
     say "  everything is already installed"
 elif [[ $SKIP_DEPS -eq 1 ]]; then
     DEPS_OK=0
     say "  ${ylw}missing (--skip-deps, not installing):${r}"
-    why_lines "${missing[@]}"
 else
     # split by what the configured repos actually carry, so one unresolvable
     # name can never take the whole batch down with it
@@ -528,10 +545,6 @@ else
         if pacman -Si "$p" &>/dev/null; then from_repo+=("$p"); else from_aur+=("$p"); fi
     done
 
-    if (( ${#from_repo[@]} )); then
-        say "  from the repos:"
-        why_lines "${from_repo[@]}"
-    fi
     if (( ${#from_aur[@]} )); then
         say "  not in your repos, will come from the aur:"
         why_lines "${from_aur[@]}"
@@ -1235,36 +1248,24 @@ if [[ $WITH_THEMING -eq 1 ]]; then
     # file it names, and is backed up first because the user owns it
     if [[ $WITH_LOOK -eq 1 ]]; then
         # inline checkbox picker, drawn in place like pick_apps. nothing starts
-        # ticked unless that config is already Lucid's
+        # ticked
         pick_look() {
             local -a label=() note=()
             local -A on=()
             local cur=0 lines=0 i key k2 k3 mark skip="" quit="" row changed=0
-            local foot_ini="$HOME/.config/foot/foot.ini"
 
             # only an installed tool gets a row; nothing installed, nothing to ask
             if command -v fastfetch &>/dev/null; then
                 i=${#label[@]}
                 label+=(Fastfetch); note+=("support/look/fastfetch.jsonc")
-                if [[ -f "$HOME/.config/fastfetch/config.jsonc" ]] \
-                    && cmp -s "$HOME/.config/fastfetch/config.jsonc" "$SRC/support/look/fastfetch.jsonc"; then
-                    on[$i]=1
-                fi
             fi
             if command -v foot &>/dev/null; then
                 i=${#label[@]}
                 label+=(foot); note+=("palette include")
-                if [[ -f "$foot_ini" ]] && grep -q 'lucid-colors.ini' "$foot_ini"; then
-                    on[$i]=1
-                fi
             fi
             if command -v kitty &>/dev/null; then
                 i=${#label[@]}
                 label+=(kitty); note+=("config, matugen include, glass include, shell fish")
-                if [[ -f "$HOME/.config/kitty/kitty.conf" ]] \
-                    && cmp -s "$HOME/.config/kitty/kitty.conf" "$SRC/support/look/kitty.conf"; then
-                    on[$i]=1
-                fi
             fi
 
             LOOK_SELECTED=()
