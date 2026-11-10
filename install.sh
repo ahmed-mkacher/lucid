@@ -260,9 +260,19 @@ pick_apps() {
     printf '\e[?25l'
 
     lines=0
+    cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
     # one printf per line, so the loop knows exactly how far to move back.
     # every line ends reset + erase-to-eol so shorter redraws leave no debris.
-    line() { printf "$1\\e[0m\\e[K\n" "${@:2}"; lines=$((lines + 1)); }
+    # a wrapped line fills two rows, so count visual rows or the redraw drifts.
+    line() {
+        local out plain n
+        out=$(printf "$1" "${@:2}")
+        printf '%s\e[0m\e[K\n' "$out"
+        plain=$(printf '%s' "$out" | sed -E 's/\x1b\[[0-9;]*m//g')
+        n=${#plain}
+        if (( n == 0 )); then n=1; fi
+        lines=$(( lines + (n + cols - 1) / cols ))
+    }
     draw() {
         if (( lines > 0 )); then printf '\e[%dA' "$lines"; fi
         lines=0
@@ -1153,34 +1163,61 @@ if [[ $WITH_THEMING -eq 1 ]]; then
         # inline checkbox picker, drawn in place like pick_apps. nothing starts
         # ticked unless that config is already Lucid's
         pick_look() {
-            local -a label=(Fastfetch foot kitty)
-            local -a note=("support/look/fastfetch.jsonc" "palette include" \
-                "config, matugen include, glass include, shell fish")
+            local -a label=() note=()
             local -A on=()
             local cur=0 lines=0 i key k2 k3 mark skip="" quit=""
             local foot_ini="$HOME/.config/foot/foot.ini"
 
-            if [[ -f "$HOME/.config/fastfetch/config.jsonc" ]] \
-                && cmp -s "$HOME/.config/fastfetch/config.jsonc" "$SRC/support/look/fastfetch.jsonc"; then
-                on[0]=1
+            # only an installed tool gets a row; nothing installed, nothing to ask
+            if command -v fastfetch &>/dev/null; then
+                i=${#label[@]}
+                label+=(Fastfetch); note+=("support/look/fastfetch.jsonc")
+                if [[ -f "$HOME/.config/fastfetch/config.jsonc" ]] \
+                    && cmp -s "$HOME/.config/fastfetch/config.jsonc" "$SRC/support/look/fastfetch.jsonc"; then
+                    on[$i]=1
+                fi
             fi
-            if [[ -f "$foot_ini" ]] && grep -q 'lucid-colors.ini' "$foot_ini"; then
-                on[1]=1
+            if command -v foot &>/dev/null; then
+                i=${#label[@]}
+                label+=(foot); note+=("palette include")
+                if [[ -f "$foot_ini" ]] && grep -q 'lucid-colors.ini' "$foot_ini"; then
+                    on[$i]=1
+                fi
             fi
-            if [[ -f "$HOME/.config/kitty/kitty.conf" ]] \
-                && cmp -s "$HOME/.config/kitty/kitty.conf" "$SRC/support/look/kitty.conf"; then
-                on[2]=1
+            if command -v kitty &>/dev/null; then
+                i=${#label[@]}
+                label+=(kitty); note+=("config, matugen include, glass include, shell fish")
+                if [[ -f "$HOME/.config/kitty/kitty.conf" ]] \
+                    && cmp -s "$HOME/.config/kitty/kitty.conf" "$SRC/support/look/kitty.conf"; then
+                    on[$i]=1
+                fi
+            fi
+
+            LOOK_SELECTED=()
+            if (( ${#label[@]} == 0 )); then
+                printf '  look: nothing installed to style\n'
+                return 0
             fi
 
             trap 'printf "\e[0m\e[?25h"; exit 130' INT TERM
             printf '\e[?25l'
 
-            line() { printf "$1\\e[0m\\e[K\n" "${@:2}"; lines=$((lines + 1)); }
+            lines=0
+            cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+            line() {
+                local out plain n
+                out=$(printf "$1" "${@:2}")
+                printf '%s\e[0m\e[K\n' "$out"
+                plain=$(printf '%s' "$out" | sed -E 's/\x1b\[[0-9;]*m//g')
+                n=${#plain}
+                if (( n == 0 )); then n=1; fi
+                lines=$(( lines + (n + cols - 1) / cols ))
+            }
             draw() {
                 if (( lines > 0 )); then printf '\e[%dA' "$lines"; fi
                 lines=0
-                line '%s' "${b}Apply the Lucid look${r}"
-                line '%s' "${dim}optional - blur and wallpaper colours apply anyway; starship, GTK theme and icons are left alone${r}"
+                line '%s' "${b}Apply your look${r}"
+                line '%s' "${dim}optional - blur and wallpaper colours still apply${r}"
                 for i in "${!label[@]}"; do
                     mark="[ ]"
                     if [[ -n ${on[$i]:-} ]]; then mark="[x]"; fi
