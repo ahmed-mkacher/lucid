@@ -1,122 +1,195 @@
-# Don't print a new line at the start of the prompt
-add_newline = false
-# colours come from [palettes.colors] at the bottom, which Lucid repaints on
-# every theme change
-palette = 'colors'
-# Pipes ╰─ ╭─
-# Powerline symbols                                     
-# Wedges 🭧🭒 🭣🭧🭓
-# Random noise 🬖🬥🬔🬗
-# Cool stuff 󰜥   
+"$schema" = 'https://starship.rs/config-schema.json'
 
-# format = """
-# $directory $fill $git_branch $cmd_duration
-#  $character"""
 format = """
-$cmd_duration $directory$git_branch
-  $character"""
+[](bright-purple)\
+$os\
+$username\
+[](bg:blue fg:bright-purple)\
+$directory\
+[](fg:blue bg:bright-blue)\
+$git_branch\
+$git_status\
+$git_metrics\
+[](fg:bright-blue bg:cyan)\
+$c\
+$cpp\
+$rust\
+$golang\
+$nodejs\
+$bun\
+$php\
+$java\
+$kotlin\
+$haskell\
+$python\
+$package\
+[](fg:cyan bg:bright-black)\
+$docker_context\
+$conda\
+$pixi\
+[](fg:bright-black bg:bright-white)\
+$cmd_duration\
+[](fg:bright-white bg:black)\
+$time\
+[ ](fg:black)\
+$line_break$character"""
 
-[fill]
-symbol = '-'
-style = 'fg:color3'
+[os]
+disabled = false
+style = "bg:bright-purple fg:black"
 
-# Replace the "❯" symbol in the prompt with "➜"
-[character]                            # The name of the module we are configuring is "character"
-success_symbol = "[ ](bold fg:color9)"
-error_symbol = "[ ](bold fg:color3)"
+[os.symbols]
+Windows = "󰍲"
+Ubuntu = "󰕈"
+SUSE = ""
+Raspbian = "󰐿"
+Mint = "󰣭"
+Macos = "󰀵"
+Manjaro = ""
+Linux = "󰌽"
+Gentoo = "󰣨"
+Fedora = "󰣛"
+Alpine = ""
+Amazon = ""
+Android = ""
+AOSC = ""
+Arch = "󰣇"
+CachyOS = "󰣇"
+Artix = "󰣇"
+EndeavourOS = ""
+CentOS = ""
+Debian = "󰣚"
+Redhat = "󱄛"
+RedHatEnterprise = "󱄛"
+Pop = ""
 
-# Disable the package module, hiding it from the prompt completely
-[package]
-disabled = true
+[username]
+show_always = true
+style_user = "bg:bright-purple fg:black"
+style_root = "bg:bright-purple fg:black"
+format = '[ $user ]($style)'
+
+[directory]
+style = "fg:black bg:blue"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = "󰝚 "
+"Pictures" = " "
+"Developer" = "󰲋 "
 
 [git_branch]
-style = "bg:color8"
-symbol = "󰘬"
-truncation_length = 12
-truncation_symbol = ""
-format = " 󰜥 [](bold fg:color8)[$symbol $branch(:$remote_branch)](fg:color2 bg:color8)[ ](bold fg:color8)"
-
-[git_commit]
-commit_hash_length = 4
-tag_symbol = " "
-
-[git_state]
-format = '[\($state( $progress_current of $progress_total)\)]($style) '
-cherry_pick = "[🍒 PICKING](bold red)"
+symbol = ""
+style = "bg:bright-blue"
+format = '[[ $symbol $branch ](fg:black bg:bright-blue)]($style)'
 
 [git_status]
-conflicted = " 🏳 "
-ahead = " 🏎💨 "
-behind = " 😰 "
-diverged = " 😵 "
-untracked = " 🤷 ‍"
-stashed = " 📦 "
-modified = " 📝 "
-staged = '[++\($count\)](green)'
-renamed = " ✍️ "
-deleted = " 🗑 "
+style = "bg:bright-blue"
+format = '[[($all_status$ahead_behind )](fg:black bg:bright-blue)]($style)'
 
-[hostname]
-ssh_only = false
-format =  "[•$hostname](bg:color8 bold fg:color2)[](bold fg:color8)"
-trim_at = ".companyname.com"
+[git_metrics]
+format = '([+$added]($added_style))([-$deleted]($deleted_style))'
+added_style = 'italic bold fg:black bg:bright-blue'
+deleted_style = 'italic fg:black bg:bright-blue'
 disabled = false
+
+[nodejs]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[bun]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[c]
+symbol = " "
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[cpp]
+symbol = " "
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[rust]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[golang]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[php]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[java]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[kotlin]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[haskell]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[python]
+symbol = ""
+style = "fg:black bg:cyan"
+format = '[[ $symbol( $version) ](fg:black bg:cyan)]($style)'
+
+[package]
+style = "fg:black bg:cyan"
+format = "[$symbol$version]($style)"
+display_private = true
+version_format = "${raw}"
+
+[docker_context]
+symbol = ""
+style = "bg:bright-black"
+format = '[[ $symbol( $context) ](fg:black bg:bright-black)]($style)'
+
+[conda]
+style = "bg:bright-black"
+format = '[[ $symbol( $environment) ](fg:black bg:bright-black)]($style)'
+
+[pixi]
+style = "bg:bright-black"
+format = '[[ $symbol( $version)( $environment) ](fg:black bg:bright-black)]($style)'
+
+[cmd_duration]
+min_time = 0
+show_milliseconds = true
+format = "[ $duration ](bold fg:black bg:bright-white)"
+
+[time]
+disabled = false
+time_format = "%R"
+style = "bg:black"
+format = '[[  $time ](fg:bright-white bg:black)]($style)'
 
 [line_break]
 disabled = false
 
-[memory_usage]
-disabled = true
-threshold = -1
-symbol = " "
-style = "bold dimmed green"
-
-[time]
-disabled = true
-format = '🕙[\[ $time \]]($style) '
-time_format = "%T"
-
-[username]
-style_user = "bold bg:color8 fg:color2"
-style_root = "red bold"
-format = "[](bold fg:color8)[$user]($style)"
+[character]
 disabled = false
-show_always = true
-
-[directory]
-home_symbol = " "
-read_only = "  "
-style = "bg:color1 fg:color2"
-truncation_length = 2
-truncation_symbol = ".../"
-format = '[](bold fg:color1)[󰉋 → $path]($style)[](bold fg:color1)'
-
-
-[directory.substitutions]
-"Desktop" = "  "
-"Documents" = "  "
-"Downloads" = "  "
-"Music" = " 󰎈 "
-"Pictures" = "  "
-"Videos" = "  "
-"GitHub" = " 󰊤 "
-
-[cmd_duration]
-min_time = 0
-format = '[](bold fg:color8)[󰪢 $duration](bold bg:color8 fg:color2)[](bold fg:color8)'
-
-# repainted by Lucid on every theme change (~/.config/lucid/sync-starship.sh).
-# only these values are rewritten, so the rest of this file stays yours
-#   color1  primary, fixed dim   color4  surface container   color7  surface
-#   color2  on primary           color5  on primary          color8  primary
-#   color3  on surface variant   color6  surface dim         color9  primary
-[palettes.colors]
-color1 = '#5B85D1'
-color2 = '#1e3050'
-color3 = '#c7c5cc'
-color4 = '#2d2049'
-color5 = '#1e3050'
-color6 = '#19102b'
-color7 = '#19102b'
-color8 = '#5B85D1'
-color9 = '#5B85D1'
+success_symbol = '[](bold fg:bright-green)'
+error_symbol = '[](bold fg:bright-red)'
+vimcmd_symbol = '[](bold fg:bright-green)'
+vimcmd_replace_one_symbol = '[](bold fg:purple)'
+vimcmd_replace_symbol = '[](bold fg:purple)'
+vimcmd_visual_symbol = '[](bold fg:blue)'
