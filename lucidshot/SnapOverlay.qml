@@ -43,6 +43,10 @@ PanelWindow {
     property real selW: 0
     property real selH: 0
 
+    // where a plain click landed, for the window pick
+    property real clickX: 0
+    property real clickY: 0
+
     // the ocr reads the frozen image, so the overlay can stay up while it works
     property bool ocrBusy: false
     property real busyX: 0
@@ -633,6 +637,17 @@ function stopRecordingBackend() {
         }
     }
 
+    // hyprctl reads the live window list, so the click is mapped to a window
+    Process {
+        id: windowPick
+
+        command: ["hyprctl", "clients", "-j"]
+
+        stdout: StdioCollector {
+            onStreamFinished: snapWindow.pickWindow(snapWindow.clickX, snapWindow.clickY, this.text)
+        }
+    }
+
     // read when a command is built, never kept in a binding: one held on to a
     // display gone since start-up (a laptop panel switched off after boot)
     function outputName() {
@@ -719,6 +734,76 @@ function stopRecordingBackend() {
             snapWindow.contentVisible = false;
             hideForCaptureTimer.start();
         }
+    }
+
+    // the overlay is a frozen frame, so a window crop is a crop of that frame:
+    // take the rect hyprctl reports for the window under the click, clip it to
+    // this monitor, and hand it to the normal region path
+    function pickWindow(px, py, raw) {
+        var sx = 0;
+        var sy = 0;
+        if (snapWindow.screen) {
+            sx = snapWindow.screen.x;
+            sy = snapWindow.screen.y;
+        }
+        var gx = sx + px;
+        var gy = sy + py;
+        var rx = 0;
+        var ry = 0;
+        var rw = snapWindow.width;
+        var rh = snapWindow.height;
+        var clients = [];
+        try {
+            clients = JSON.parse(raw);
+        } catch (e) {
+            clients = [];
+        }
+        if (!Array.isArray(clients))
+            clients = [];
+        // lowest focusHistoryID is the most recently focused, so the top window
+        var best = null;
+        var bestFocus = 1e6;
+        for (var i = 0; i < clients.length; i++) {
+            var c = clients[i];
+            if (!c || c.mapped !== true || c.hidden === true)
+                continue;
+            // hyprctl reports at and size as [x, y] pairs
+            if (!Array.isArray(c.at) || c.at.length < 2)
+                continue;
+            if (!Array.isArray(c.size) || c.size.length < 2)
+                continue;
+            if (typeof c.at[0] !== "number" || typeof c.at[1] !== "number")
+                continue;
+            if (typeof c.size[0] !== "number" || typeof c.size[1] !== "number")
+                continue;
+            if (gx < c.at[0] || gy < c.at[1])
+                continue;
+            if (gx >= c.at[0] + c.size[0] || gy >= c.at[1] + c.size[1])
+                continue;
+            var focus = 1e6;
+            if (typeof c.focusHistoryID === "number")
+                focus = c.focusHistoryID;
+            if (focus < bestFocus) {
+                bestFocus = focus;
+                best = c;
+            }
+        }
+        if (best) {
+            rx = Math.max(0, best.at[0] - sx);
+            ry = Math.max(0, best.at[1] - sy);
+            var right = Math.min(snapWindow.width, best.at[0] + best.size[0] - sx);
+            var bottom = Math.min(snapWindow.height, best.at[1] + best.size[1] - sy);
+            rw = Math.max(0, right - rx);
+            rh = Math.max(0, bottom - ry);
+        }
+        snapWindow.selX = rx;
+        snapWindow.selY = ry;
+        snapWindow.selW = rw;
+        snapWindow.selH = rh;
+        snapWindow.pendingAction = "region";
+        snapWindow.animateContent = false;
+        snapWindow.contentVisible = false;
+        hideForCaptureTimer.start();
     }
 
     Timer {
@@ -957,6 +1042,16 @@ function stopRecordingBackend() {
             if (snapWindow.selW < 2 || snapWindow.selH < 2) {
                 snapWindow.selW = 0;
                 snapWindow.selH = 0;
+                // a plain click picks the window under the cursor, or this monitor
+                if (snapWindow.captureMode !== "camera")
+                    return;
+                if (snapWindow.activeTool !== "select")
+                    return;
+                snapWindow.clickX = mouse.x;
+                snapWindow.clickY = mouse.y;
+                // the process result starts the capture, so a dead hyprctl can't wedge it
+                windowPick.running = false;
+                windowPick.running = true;
                 return;
             }
             if (snapWindow.captureMode === "video")
