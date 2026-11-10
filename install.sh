@@ -237,7 +237,7 @@ pick_apps() {
     done
 
     for i in "${!pkg[@]}"; do
-        if has_pkg "${pkg[i]}"; then
+        if have_pkg "${pkg[i]}"; then
             on[$i]=1
             have[$i]=1
         fi
@@ -288,6 +288,9 @@ pick_apps() {
             fi
             if [[ $i -eq $cur ]]; then
                 line '  \e[7m %s %-18s %s \e[0m' "$mark" "${label[i]}" "$note"
+            elif [[ -n ${have[$i]:-} ]]; then
+                # installed rows are locked on, so they read as done, not open
+                line '   %s%s %-18s %s%s' "$dim" "$mark" "${label[i]}" "$note" "$r"
             else
                 line '   %s %-18s %s' "$mark" "${label[i]}" "$note"
             fi
@@ -315,14 +318,17 @@ pick_apps() {
                 k) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
                 j) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); fi ;;
                 ' ')
-                    if [[ -n ${on[$cur]:-} ]]; then
-                        unset "on[$cur]"
-                        # a default that is no longer selected is no default
-                        if [[ ${def[${sid[cur]}]:-} == "$cur" ]]; then
-                            unset "def[${sid[cur]}]"
+                    # an installed app stays selected: space leaves it alone
+                    if [[ -z ${have[$cur]:-} ]]; then
+                        if [[ -n ${on[$cur]:-} ]]; then
+                            unset "on[$cur]"
+                            # a default that is no longer selected is no default
+                            if [[ ${def[${sid[cur]}]:-} == "$cur" ]]; then
+                                unset "def[${sid[cur]}]"
+                            fi
+                        else
+                            on[$cur]=1
                         fi
-                    else
-                        on[$cur]=1
                     fi
                     ;;
                 d)
