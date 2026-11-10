@@ -59,7 +59,7 @@ end
 -- up to dismiss. Vertical only, so the 3 & 4 finger horizontal workspace
 -- swipes above are untouched. Directional open/close rather than a toggle so
 -- the gesture is deterministic - swiping up on an already-closed overview is a
--- harmless no-op. Also reachable via SUPER + W (see modules/binds.lua).
+-- harmless no-op. Also reachable via SUPER + Tab (see modules/binds.lua).
 local function overview(action)
     return function()
         hl.dispatch(hl.dsp.exec_cmd("qs ipc call workspaces " .. action))

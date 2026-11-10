@@ -8,8 +8,8 @@
 -- `hyprctl reload` away and nothing here needs editing to add a bind.
 --
 -- An entry:
---   { "id": "terminal", "keys": "F9", "desc": "Terminal",
---     "category": "Apps", "type": "exec", "cmd": "kitty",
+--   { "id": "terminal", "keys": "SUPER + Return", "desc": "Terminal",
+--     "category": "Apps", "type": "exec", "cmd": "foot",
 --     "opts": { "locked": true }, "enabled": false }
 --
 --   type "exec" runs cmd through the shell. type "lua" evaluates "lua" as an
@@ -135,12 +135,12 @@ end
 
 -- enough to get around, reach Settings and fix the file
 local EMERGENCY = {
-    { id = "terminal", keys = "F9", type = "exec", cmd = "kitty" },
+    { id = "terminal", keys = "SUPER + Return", type = "exec", cmd = "foot" },
     { id = "close", keys = "SUPER + C", type = "lua", lua = "hl.dsp.window.close()" },
-    { id = "settings", keys = "SUPER + S", type = "exec", cmd = "qs ipc call settings keybinds" },
+    { id = "settings", keys = "SUPER + I", type = "exec", cmd = "qs ipc call settings keybinds" },
     { id = "launcher", keys = "SUPER + Super_L", type = "exec", cmd = "qs ipc call launcher toggle", opts = { release = true } },
-    { id = "reload", keys = "SUPER + R", type = "exec", cmd = "hyprctl reload" },
-    { id = "exit", keys = "SUPER + M", type = "lua", lua = "hl.dsp.exit()" },
+    { id = "reload", keys = "CTRL + ALT + R", type = "exec", cmd = "hyprctl reload" },
+    { id = "exit", keys = "CTRL + SUPER + M", type = "lua", lua = "hl.dsp.exit()" },
     { id = "ws-focus", keys = "SUPER + {key}", each = "workspace", type = "lua", lua = "hl.dsp.focus({ workspace = {n} })" },
     { id = "ws-move", keys = "SUPER + SHIFT + {key}", each = "workspace", type = "lua", lua = "hl.dsp.window.move({ workspace = {n} })" },
 }
@@ -158,7 +158,7 @@ if load_err then
     status.error = load_err
     for _, entry in ipairs(EMERGENCY) do apply(entry) end
     pcall(hl.notification.create, {
-        text = "Lucid keybinds: " .. load_err .. ". Emergency binds are active - SUPER+S opens Settings.",
+        text = "Lucid keybinds: " .. load_err .. ". Emergency binds are active - SUPER+I opens Settings.",
         timeout = 12000,
     })
 end
