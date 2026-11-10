@@ -18,7 +18,7 @@
     { "id": "paste-clip", "keys": "CTRL + SHIFT + ALT + V", "desc": "Type last clipboard entry", "category": "Lucid", "type": "exec", "cmd": "sleep 0.5s && ydotool type -d 1 \"$(cliphist list | head -1 | cliphist decode)\"", "opts": { "locked": true } },
     { "id": "clipboard", "keys": "SUPER + V", "desc": "Clipboard history", "category": "Lucid", "type": "exec", "cmd": "qs ipc call launcher clipboard" },
     { "id": "lock-slash", "keys": "SUPER + slash", "desc": "Lock screen", "category": "Lucid", "type": "exec", "cmd": "qs ipc call lock lock" },
-    { "id": "files", "keys": "SUPER + E", "desc": "File manager", "category": "Apps", "type": "exec", "cmd": "nautilus" },
+    { "id": "files", "keys": "SUPER + E", "desc": "File manager", "category": "Apps", "type": "exec", "cmd": "thunar" },
     { "id": "terminal", "keys": "SUPER + return", "desc": "Terminal", "category": "Apps", "type": "exec", "cmd": "foot" },
     { "id": "editor", "keys": "SUPER + C", "desc": "Editor", "category": "Apps", "type": "exec", "cmd": "zeditor" },
     { "id": "browser", "keys": "SUPER + W", "desc": "Zen browser (scratchpad)", "category": "Apps", "type": "lua", "lua": "specials.launch(\"special\", \"zen-browser\")" },
