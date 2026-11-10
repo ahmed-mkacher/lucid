@@ -229,7 +229,7 @@ pick_apps() {
     )
     local -a sec=() sid=() label=() pkg=() exe=()
     local -A on=() have=() def=()
-    local rec s i l p e cur=0 cnt only key k2 k3 mark note lines picked defs d
+    local rec s i l p e cur=0 cnt only key k2 k3 mark note lines picked defs d skip=""
 
     for rec in "${rows[@]}"; do
         IFS='|' read -r s i l p e <<< "$rec"
@@ -260,8 +260,9 @@ pick_apps() {
     printf '\e[?25l'
 
     lines=0
-    # one printf per line, so the loop knows exactly how far to move back
-    line() { printf "$1\n" "${@:2}"; lines=$((lines + 1)); }
+    # one printf per line, so the loop knows exactly how far to move back.
+    # every line ends reset + erase-to-eol so shorter redraws leave no debris.
+    line() { printf "$1\\e[0m\\e[K\n" "${@:2}"; lines=$((lines + 1)); }
     draw() {
         if (( lines > 0 )); then printf '\e[%dA' "$lines"; fi
         lines=0
@@ -287,7 +288,7 @@ pick_apps() {
                 note="${note:+$note }(default)"
             fi
             if [[ $i -eq $cur ]]; then
-                line '  \e[7m %s %-18s %s \e[0m' "$mark" "${label[i]}" "$note"
+                line '  \e[7m %s %-18s%s\e[0m' "$mark" "${label[i]}" "${note:+ $note}"
             elif [[ -n ${have[$i]:-} ]]; then
                 # installed rows are locked on, so they read as done, not open
                 line '   %s%s %-18s %s%s' "$dim" "$mark" "${label[i]}" "$note" "$r"
@@ -296,7 +297,7 @@ pick_apps() {
             fi
         done
         line ''
-        line '  %s' "${dim}up/down or j/k move   space toggle   d default   enter install${r}"
+        line '  %s' "${dim}up/down or j/k move   space toggle   d default   enter install   s skip${r}"
     }
 
     draw
@@ -315,6 +316,7 @@ pick_apps() {
             fi
         else
             case "$key" in
+                s|q) skip=1; break ;;
                 k) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
                 j) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); fi ;;
                 ' ')
@@ -352,6 +354,13 @@ pick_apps() {
 
     trap - INT TERM
     printf '\e[0m\e[?25h\n'
+
+    if [[ -n $skip ]]; then
+        PICK_SELECTED=()
+        PICK_DEFAULT=()
+        printf '  apps skipped\n'
+        return 0
+    fi
 
     PICK_SELECTED=()
     for i in "${!pkg[@]}"; do
