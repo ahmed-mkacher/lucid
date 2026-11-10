@@ -229,7 +229,7 @@ pick_apps() {
     )
     local -a sec=() sid=() label=() pkg=() exe=()
     local -A on=() have=() def=()
-    local rec s i l p e cur=0 cnt only key k2 k3 mark note lines picked defs d skip="" quit=""
+    local rec s i l p e cur=0 cnt only key k2 k3 mark note lines picked defs d skip="" quit="" row changed=0
 
     for rec in "${rows[@]}"; do
         IFS='|' read -r s i l p e <<< "$rec"
@@ -255,40 +255,36 @@ pick_apps() {
         if [[ $cnt -eq 1 ]]; then def[$s]=$only; fi
     done
 
-    # Ctrl-C must not leave the terminal with a hidden cursor or reverse video
-    trap 'printf "\e[0m\e[?25h"; exit 130' INT TERM
+    # Ctrl-C must not leave the terminal with a hidden cursor, reverse video or
+    # a muted tty
+    trap 'stty echo 2>/dev/null || true; printf "\e[0m\e[?25h"; exit 130' INT TERM
     printf '\e[?25l'
+    # echo stays off for the whole picker: between reads the tty would print
+    # keys pressed while the redraw runs all over the list
+    stty -echo 2>/dev/null || true
 
     lines=0
-    cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
-    # one printf per line, so the loop knows exactly how far to move back.
-    # every line ends reset + erase-to-eol so shorter redraws leave no debris.
-    # a wrapped line fills two rows, so count visual rows or the redraw drifts.
+    # one printf per row and every row is cut to the terminal width, so a row
+    # is always exactly one visual row and counting back cannot drift.
     line() {
-        local out plain n
-        out=$(printf "$1" "${@:2}")
-        printf '%s\e[0m\e[K\n' "$out"
-        plain=$(printf '%s' "$out" | sed -E 's/\x1b\[[0-9;]*m//g')
-        n=${#plain}
-        if (( n == 0 )); then n=1; fi
-        lines=$(( lines + (n + cols - 1) / cols ))
+        local st="$1" row="$2"
+        row=${row:0:cols-1}
+        printf '%s%s\e[0m\e[K\n' "$st" "$row"
+        lines=$((lines + 1))
     }
     draw() {
+        cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
         if (( lines > 0 )); then printf '\e[%dA' "$lines"; fi
         lines=0
-        line '%s' "${b}Apps to install${r}"
-        line '%s' "${dim}optional - Lucid runs without any of these${r}"
+        line "$b" "Apps to install"
+        line "$dim" "optional - Lucid runs without any of these"
         s=""
         for i in "${!pkg[@]}"; do
             if [[ ${sec[i]} != "$s" ]]; then
                 s=${sec[i]}
                 note=${sec_note[${sid[i]}]:-}
-                line ''
-                if [[ -n "$note" ]]; then
-                    line ' %s%-12s%s %s%s' "$b" "$s" "$r" "$dim" "$note"
-                else
-                    line ' %s%s%s' "$b" "$s" "$r"
-                fi
+                line "" ""
+                line "$b" " $s${note:+ $note}"
             fi
             mark="[ ]"
             if [[ -n ${on[$i]:-} ]]; then mark="[x]"; fi
@@ -297,21 +293,23 @@ pick_apps() {
             if [[ ${def[${sid[i]}]:-} == "$i" ]]; then
                 note="${note:+$note }(default)"
             fi
+            printf -v row ' %s %-18s%s' "$mark" "${label[i]}" "${note:+ $note}"
             if [[ $i -eq $cur ]]; then
-                line '  \e[7m %s %-18s%s\e[0m' "$mark" "${label[i]}" "${note:+ $note}"
+                line $'\e[7m' "$row"
             elif [[ -n ${have[$i]:-} ]]; then
                 # installed rows are locked on, so they read as done, not open
-                line '   %s%s %-18s %s%s' "$dim" "$mark" "${label[i]}" "$note" "$r"
+                line "$dim" "$row"
             else
-                line '   %s %-18s %s' "$mark" "${label[i]}" "$note"
+                line "" "$row"
             fi
         done
-        line ''
-        line '  %s' "${dim}up/down or j/k move   space toggle   d default   enter install   s skip   q quit${r}"
+        line "" ""
+        line "$dim" "  up/down or j/k move   space toggle   d default   enter install   s skip   q quit"
     }
 
     draw
     while :; do
+        changed=0
         IFS= read -rsn1 key || key=""
         if [[ -z $key || $key == $'\n' ]]; then break; fi
         if [[ $key == $'\e' ]]; then
@@ -320,16 +318,16 @@ pick_apps() {
             if [[ $k2 == '[' ]]; then
                 IFS= read -rsn1 -t 0.02 k3 || k3=""
                 case "$k3" in
-                    A) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
-                    B) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); fi ;;
+                    A) if (( cur > 0 )); then cur=$((cur - 1)); changed=1; fi ;;
+                    B) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); changed=1; fi ;;
                 esac
             fi
         else
             case "$key" in
                 s) skip=1; break ;;
                 q) quit=1; break ;;
-                k) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
-                j) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); fi ;;
+                k) if (( cur > 0 )); then cur=$((cur - 1)); changed=1; fi ;;
+                j) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); changed=1; fi ;;
                 ' ')
                     # an installed app stays selected: space leaves it alone
                     if [[ -z ${have[$cur]:-} ]]; then
@@ -342,6 +340,7 @@ pick_apps() {
                         else
                             on[$cur]=1
                         fi
+                        changed=1
                     fi
                     ;;
                 d)
@@ -354,16 +353,21 @@ pick_apps() {
                                 else
                                     def[${sid[cur]}]=$cur
                                 fi
+                                changed=1
                             fi
                             ;;
                     esac
                     ;;
             esac
         fi
-        draw
+        if (( changed )); then draw; fi
     done
 
+    # one short drain of keys still queued, so a held key cannot spill onto the
+    # next prompt
+    while IFS= read -rsn1 -t 0.01 _; do :; done
     trap - INT TERM
+    stty echo 2>/dev/null || true
     printf '\e[0m\e[?25h\n'
 
     if [[ -n $quit ]]; then printf 'stopped.\n'; exit 1; fi
@@ -1165,7 +1169,7 @@ if [[ $WITH_THEMING -eq 1 ]]; then
         pick_look() {
             local -a label=() note=()
             local -A on=()
-            local cur=0 lines=0 i key k2 k3 mark skip="" quit=""
+            local cur=0 lines=0 i key k2 k3 mark skip="" quit="" row changed=0
             local foot_ini="$HOME/.config/foot/foot.ini"
 
             # only an installed tool gets a row; nothing installed, nothing to ask
@@ -1199,40 +1203,46 @@ if [[ $WITH_THEMING -eq 1 ]]; then
                 return 0
             fi
 
-            trap 'printf "\e[0m\e[?25h"; exit 130' INT TERM
+            # Ctrl-C must not leave the terminal with a hidden cursor, reverse
+            # video or a muted tty
+            trap 'stty echo 2>/dev/null || true; printf "\e[0m\e[?25h"; exit 130' INT TERM
             printf '\e[?25l'
+            # echo stays off for the whole picker: between reads the tty would
+            # print keys pressed while the redraw runs all over the list
+            stty -echo 2>/dev/null || true
 
             lines=0
-            cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+            # one printf per row and every row is cut to the terminal width, so
+            # a row is always exactly one visual row and counting back cannot drift.
             line() {
-                local out plain n
-                out=$(printf "$1" "${@:2}")
-                printf '%s\e[0m\e[K\n' "$out"
-                plain=$(printf '%s' "$out" | sed -E 's/\x1b\[[0-9;]*m//g')
-                n=${#plain}
-                if (( n == 0 )); then n=1; fi
-                lines=$(( lines + (n + cols - 1) / cols ))
+                local st="$1" row="$2"
+                row=${row:0:cols-1}
+                printf '%s%s\e[0m\e[K\n' "$st" "$row"
+                lines=$((lines + 1))
             }
             draw() {
+                cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
                 if (( lines > 0 )); then printf '\e[%dA' "$lines"; fi
                 lines=0
-                line '%s' "${b}Apply your look${r}"
-                line '%s' "${dim}optional - blur and wallpaper colours still apply${r}"
+                line "$b" "Apply your look"
+                line "$dim" "optional - blur and wallpaper colours still apply"
                 for i in "${!label[@]}"; do
                     mark="[ ]"
                     if [[ -n ${on[$i]:-} ]]; then mark="[x]"; fi
+                    printf -v row ' %s %-9s%s' "$mark" "${label[i]}" "${note[i]:+ ${note[i]}}"
                     if [[ $i -eq $cur ]]; then
-                        line '  \e[7m %s %-9s%s\e[0m' "$mark" "${label[i]}" "${note[i]:+ ${note[i]}}"
+                        line $'\e[7m' "$row"
                     else
-                        line '   %s %-9s %s' "$mark" "${label[i]}" "${note[i]}"
+                        line "" "$row"
                     fi
                 done
-                line ''
-                line '  %s' "${dim}up/down or j/k move   space toggle   enter apply   s skip   q quit${r}"
+                line "" ""
+                line "$dim" "  up/down or j/k move   space toggle   enter apply   s skip   q quit"
             }
 
             draw
             while :; do
+                changed=0
                 IFS= read -rsn1 key || key=""
                 if [[ -z $key || $key == $'\n' ]]; then break; fi
                 if [[ $key == $'\e' ]]; then
@@ -1240,25 +1250,30 @@ if [[ $WITH_THEMING -eq 1 ]]; then
                     if [[ $k2 == '[' ]]; then
                         IFS= read -rsn1 -t 0.02 k3 || k3=""
                         case "$k3" in
-                            A) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
-                            B) if (( cur < ${#label[@]} - 1 )); then cur=$((cur + 1)); fi ;;
+                            A) if (( cur > 0 )); then cur=$((cur - 1)); changed=1; fi ;;
+                            B) if (( cur < ${#label[@]} - 1 )); then cur=$((cur + 1)); changed=1; fi ;;
                         esac
                     fi
                 else
                     case "$key" in
                         s) skip=1; break ;;
                         q) quit=1; break ;;
-                        k) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
-                        j) if (( cur < ${#label[@]} - 1 )); then cur=$((cur + 1)); fi ;;
+                        k) if (( cur > 0 )); then cur=$((cur - 1)); changed=1; fi ;;
+                        j) if (( cur < ${#label[@]} - 1 )); then cur=$((cur + 1)); changed=1; fi ;;
                         ' ')
                             if [[ -n ${on[$cur]:-} ]]; then unset "on[$cur]"; else on[$cur]=1; fi
+                            changed=1
                             ;;
                     esac
                 fi
-                draw
+                if (( changed )); then draw; fi
             done
 
+            # one short drain of keys still queued, so a held key cannot spill
+            # onto the next prompt
+            while IFS= read -rsn1 -t 0.01 _; do :; done
             trap - INT TERM
+            stty echo 2>/dev/null || true
             printf '\e[0m\e[?25h\n'
 
             if [[ -n $quit ]]; then printf 'stopped.\n'; exit 1; fi
