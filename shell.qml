@@ -576,18 +576,21 @@ ShellRoot {
             // regardless of the pointer. held: the pointer is on the reveal
             // strip or already on a module - either keeps it from hiding
             readonly property bool barBusy: bar.modules.some((m) => {
-                return m.expanded === true || m.anyOpen === true;
-            })
+                return m.expanded === true || m.anyOpen === true || m.overlayOpen === true;
+            }) || workspacesMod.expanded
             property bool slidingAway: false
             readonly property bool heldByPointer: revealArea.containsMouse || (!bar.slidingAway && bar.modules.some((m) => {
                 return m.visible && (m.surfaceHovered === true || m.compactHovered === true);
-            }))
+            })) || workspacesMod.expanded
             readonly property bool barRevealed: !Prefs.barAutoHide || bar.barBusy || bar.heldByPointer
+            readonly property int barWindowTop: Prefs.barAutoHide ? 0 : Prefs.effectiveBarTopMargin
             // how far the compact content sits above its resting y=0 while
             // hidden - past the window's own top edge, so it clips away for free
-            property real hiddenOffset: bar.barRevealed ? 0 : -(Theme.dp(Prefs.barHeight) + Prefs.effectiveBarTopMargin + Theme.dp(4))
+            property real hiddenOffset: Prefs.barAutoHide ? (bar.barRevealed ? Prefs.effectiveBarTopMargin : -(Theme.dp(Prefs.barHeight) + Theme.dp(1))) : 0
 
             Behavior on hiddenOffset {
+                enabled: bar.laidOut
+
                 NumberAnimation {
                     duration: Theme.durLong
                     easing.type: Easing.Bezier
@@ -623,7 +626,7 @@ ShellRoot {
             }
 
             color: "transparent"
-            implicitHeight: bar.screen ? bar.screen.height - Prefs.effectiveBarTopMargin : Theme.dp(800)
+            implicitHeight: bar.screen ? bar.screen.height - bar.barWindowTop : Theme.dp(800)
             exclusiveZone: (Prefs.barEnabled && bar.anyModuleShown && !Prefs.barAutoHide) ? Theme.dp(Prefs.barHeight) + Prefs.shellGap : 0
 
             anchors {
@@ -634,7 +637,7 @@ ShellRoot {
             }
 
             margins {
-                top: Prefs.effectiveBarTopMargin
+                top: bar.barWindowTop
             }
 
             // full bar: one strip across the whole top edge, under every module
@@ -1088,8 +1091,9 @@ ShellRoot {
 
                 x: 0
                 y: 0
+                z: -1
                 width: bar.width
-                height: Theme.dp(4)
+                height: bar.barRevealed ? Prefs.effectiveBarTopMargin + Theme.dp(Prefs.barHeight) : Theme.dp(4)
                 hoverEnabled: true
                 acceptedButtons: Qt.NoButton
                 enabled: Prefs.barAutoHide
