@@ -175,6 +175,69 @@ declare -A PKG_ALTS=(
     [ttf-jetbrains-mono-nerd]="nerd-fonts ttf-jetbrains-mono"
     [xdg-desktop-portal-gtk]="xdg-desktop-portal-gnome xdg-desktop-portal-kde"
 )
+# why each package is wanted, in plain words - this list is read by people who
+# have never seen Lucid before, so say what stops working without it
+declare -A PKG_WHY=(
+    [quickshell]="the shell itself - nothing starts without it"
+    [qt6-5compat]="Qt 5 modules the shell imports"
+    [qt6-declarative]="Qt Quick runtime the panels are drawn with"
+    [qt6-multimedia]="media playback in the media panel"
+    [matugen]="colours pulled from the wallpaper"
+    [jq]="reads and writes the shell's json state"
+    [imagemagick]="screenshot crops, rounded window corners"
+    [networkmanager]="the Wi-Fi panel"
+    [qrencode]="the QR code when sharing a saved Wi-Fi"
+    [bluez]="Bluetooth backend for the Bluetooth panel"
+    [bluez-utils]="bluetoothctl, which that panel drives"
+    [bluez-obex]="sending and receiving files over Bluetooth"
+    [libpulse]="volume and audio devices"
+    [wireplumber]="the audio session the panel talks to"
+    [brightnessctl]="the brightness keys"
+    [upower]="the battery in the bar"
+    [hypridle]="idle: dim, lock and suspend when you walk away"
+    [hyprsunset]="night light"
+    [grim]="screenshots"
+    [wf-recorder]="screen recording"
+    [ffmpeg]="recording encode and media thumbnails"
+    [wl-clipboard]="copy and paste"
+    [wtype]="typing an emoji or GIF into the focused app"
+    [cliphist]="clipboard history"
+    [tesseract]="copying text off the screen (OCR)"
+    [tesseract-data-eng]="English data for that"
+    [hyprpicker]="picking a colour off the screen"
+    [python-pillow]="emoji drawn in copied text"
+    [python-numpy]="the emoji glyph atlas"
+    [python-fonttools]="the emoji glyph atlas"
+    [cava]="the audio visualiser strips"
+    [songrec]="naming the song that is playing"
+    [curl]="the update check and downloads"
+    [libnotify]="desktop notifications"
+    [awww]="wallpapers"
+    [noto-fonts-emoji]="emoji glyphs"
+    [xdg-utils]="opening links and files in the right app"
+    [swappy]="annotating a screenshot before it saves"
+    [polkit]="the permission dialog when an action needs root"
+    [accountsservice]="Settings -> Accounts"
+    [gsettings-desktop-schemas]="GTK apps following the dark theme"
+    [xdg-desktop-portal-gtk]="file pickers inside sandboxed apps"
+    [librsvg]="drawing a cursor theme's shadows"
+    [xdg-terminal-exec]="the launcher's $ mode, in your terminal"
+    [inotify-tools]="the camera-in-use toast"
+    [smartmontools]="drive health in Settings -> Storage"
+    [udisks2]="mounting and ejecting drives"
+    [playerctl]="the media keys and the media panel"
+    [starship]="the prompt in the terminal"
+    [fish]="the shell the terminal opens"
+    [ttf-jetbrains-mono-nerd]="the glyphs the prompt and fastfetch draw"
+)
+
+# one package per line with its reason; anything unnamed still reads fine
+why_lines() {
+    local p
+    for p in "$@"; do
+        printf '    %-26s %s\n' "$p" "${PKG_WHY[$p]:-picked from the app list}"
+    done
+}
 
 # true when the package, or anything standing in for it, is installed
 have_pkg() {
@@ -456,7 +519,7 @@ if [[ ${#missing[@]} -eq 0 ]]; then
 elif [[ $SKIP_DEPS -eq 1 ]]; then
     DEPS_OK=0
     say "  ${ylw}missing (--skip-deps, not installing):${r}"
-    printf '    %s\n' "${missing[@]}"
+    why_lines "${missing[@]}"
 else
     # split by what the configured repos actually carry, so one unresolvable
     # name can never take the whole batch down with it
@@ -465,8 +528,14 @@ else
         if pacman -Si "$p" &>/dev/null; then from_repo+=("$p"); else from_aur+=("$p"); fi
     done
 
-    [[ ${#from_repo[@]} -gt 0 ]] && say "  from the repos: ${from_repo[*]}"
-    [[ ${#from_aur[@]}  -gt 0 ]] && say "  not in your repos, will try the aur: ${from_aur[*]}"
+    if (( ${#from_repo[@]} )); then
+        say "  from the repos:"
+        why_lines "${from_repo[@]}"
+    fi
+    if (( ${#from_aur[@]} )); then
+        say "  not in your repos, will come from the aur:"
+        why_lines "${from_aur[@]}"
+    fi
 
     if ask "  install these now?"; then
         if [[ ${#from_repo[@]} -gt 0 ]]; then
@@ -487,7 +556,8 @@ else
                 done
             else
                 DEPS_OK=0
-                warn "no AUR helper (paru/yay) — install manually: ${from_aur[*]}"
+                warn "no AUR helper (paru/yay) — install manually:"
+                why_lines "${from_aur[@]}"
             fi
         fi
     else
