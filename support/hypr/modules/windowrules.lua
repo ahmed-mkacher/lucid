@@ -5,6 +5,8 @@
 -- browsers and chat apps always open in their own special workspace
 hl.window_rule({ match = { class = "(?i)^(zen|helium|helium-browser)$" }, workspace = "special:special" })
 hl.window_rule({ match = { class = "(?i)^(vesktop|org\\.telegram\\.desktop|telegramdesktop)$" }, workspace = "special:comms" })
+-- notes apps always open in the to-do workspace
+hl.window_rule({ match = { class = "(?i)^(obsidian|notion.*|logseq.*|joplin.*)$" }, workspace = "special:todo" })
 
 local suppressMaximizeRule = hl.window_rule({
     name  = "suppress-maximize-events",
