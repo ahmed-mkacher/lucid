@@ -37,20 +37,20 @@ PanelWindow {
         }
     }
 
-    // what follows a saved capture, per Prefs.shotPreview: the preview card,
-    // the notification it replaces, or nothing (it is on the clipboard already)
+    // images open in swappy straight away; recordings follow Prefs.shotPreview:
+    // the preview card, or the notification it replaces
     function announce(file, kind) {
         if (kind !== "video")
             Sounds.event("capture", Prefs.soundOnCapture);
 
-        if (Prefs.shotPreview === "preview") {
-            flashWindow.saved(file, kind);
-        } else if (Prefs.shotPreview === "notify") {
-            if (kind === "video")
+        if (kind === "video") {
+            if (Prefs.shotPreview === "preview")
+                flashWindow.saved(file, kind);
+            else if (Prefs.shotPreview === "notify")
                 Quickshell.execDetached(["notify-send", "Recording saved", "Saved to " + file]);
-            else
-                Quickshell.execDetached(["sh", "-c", "ACTION=$(notify-send 'Screenshot taken!' \"Saved to $1\" -i \"$1\" -A 'open=Open Screenshot' --wait) && [ \"$ACTION\" = open ] && swappy -f \"$1\"; true", "sh", file]);
+            return;
         }
+        Quickshell.execDetached(["swappy", "-f", file]);
     }
 
     // grim with no -o stitches every display into one image, and the flash
