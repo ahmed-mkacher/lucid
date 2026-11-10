@@ -229,7 +229,7 @@ pick_apps() {
     )
     local -a sec=() sid=() label=() pkg=() exe=()
     local -A on=() have=() def=()
-    local rec s i l p e cur=0 cnt only key k2 k3 mark note lines picked defs d skip=""
+    local rec s i l p e cur=0 cnt only key k2 k3 mark note lines picked defs d skip="" quit=""
 
     for rec in "${rows[@]}"; do
         IFS='|' read -r s i l p e <<< "$rec"
@@ -297,7 +297,7 @@ pick_apps() {
             fi
         done
         line ''
-        line '  %s' "${dim}up/down or j/k move   space toggle   d default   enter install   s skip${r}"
+        line '  %s' "${dim}up/down or j/k move   space toggle   d default   enter install   s skip   q quit${r}"
     }
 
     draw
@@ -316,7 +316,8 @@ pick_apps() {
             fi
         else
             case "$key" in
-                s|q) skip=1; break ;;
+                s) skip=1; break ;;
+                q) quit=1; break ;;
                 k) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
                 j) if (( cur < ${#pkg[@]} - 1 )); then cur=$((cur + 1)); fi ;;
                 ' ')
@@ -354,6 +355,8 @@ pick_apps() {
 
     trap - INT TERM
     printf '\e[0m\e[?25h\n'
+
+    if [[ -n $quit ]]; then printf 'stopped.\n'; exit 1; fi
 
     if [[ -n $skip ]]; then
         PICK_SELECTED=()
@@ -1154,7 +1157,7 @@ if [[ $WITH_THEMING -eq 1 ]]; then
             local -a note=("support/look/fastfetch.jsonc" "palette include" \
                 "config, matugen include, glass include, shell fish")
             local -A on=()
-            local cur=0 lines=0 i key k2 k3 mark
+            local cur=0 lines=0 i key k2 k3 mark skip="" quit=""
             local foot_ini="$HOME/.config/foot/foot.ini"
 
             if [[ -f "$HOME/.config/fastfetch/config.jsonc" ]] \
@@ -1172,23 +1175,23 @@ if [[ $WITH_THEMING -eq 1 ]]; then
             trap 'printf "\e[0m\e[?25h"; exit 130' INT TERM
             printf '\e[?25l'
 
-            line() { printf "$1\n" "${@:2}"; lines=$((lines + 1)); }
+            line() { printf "$1\\e[0m\\e[K\n" "${@:2}"; lines=$((lines + 1)); }
             draw() {
                 if (( lines > 0 )); then printf '\e[%dA' "$lines"; fi
                 lines=0
                 line '%s' "${b}Apply the Lucid look${r}"
-                line '%s' "${dim}each is optional - nothing is changed unless it is ticked${r}"
+                line '%s' "${dim}optional - blur and wallpaper colours apply anyway; starship, GTK theme and icons are left alone${r}"
                 for i in "${!label[@]}"; do
                     mark="[ ]"
                     if [[ -n ${on[$i]:-} ]]; then mark="[x]"; fi
                     if [[ $i -eq $cur ]]; then
-                        line '  \e[7m %s %-9s %s \e[0m' "$mark" "${label[i]}" "${note[i]}"
+                        line '  \e[7m %s %-9s%s\e[0m' "$mark" "${label[i]}" "${note[i]:+ ${note[i]}}"
                     else
                         line '   %s %-9s %s' "$mark" "${label[i]}" "${note[i]}"
                     fi
                 done
                 line ''
-                line '  %s' "${dim}up/down or j/k move   space toggle   enter apply${r}"
+                line '  %s' "${dim}up/down or j/k move   space toggle   enter apply   s skip   q quit${r}"
             }
 
             draw
@@ -1206,6 +1209,8 @@ if [[ $WITH_THEMING -eq 1 ]]; then
                     fi
                 else
                     case "$key" in
+                        s) skip=1; break ;;
+                        q) quit=1; break ;;
                         k) if (( cur > 0 )); then cur=$((cur - 1)); fi ;;
                         j) if (( cur < ${#label[@]} - 1 )); then cur=$((cur + 1)); fi ;;
                         ' ')
@@ -1219,7 +1224,13 @@ if [[ $WITH_THEMING -eq 1 ]]; then
             trap - INT TERM
             printf '\e[0m\e[?25h\n'
 
+            if [[ -n $quit ]]; then printf 'stopped.\n'; exit 1; fi
+
             LOOK_SELECTED=()
+            if [[ -n $skip ]]; then
+                printf '  look: skipped\n'
+                return 0
+            fi
             for i in "${!label[@]}"; do
                 if [[ -n ${on[$i]:-} ]]; then LOOK_SELECTED[${label[i],,}]=1; fi
             done
