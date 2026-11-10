@@ -1392,12 +1392,50 @@ if [[ $WITH_THEMING -eq 1 ]]; then
                 cp "$FOOT_INI" "$FOOT_INI.backup-$STAMP"
                 say "  your foot.ini -> foot.ini.backup-$STAMP"
             fi
-            if grep -q 'include=~/.config/foot/lucid-colors.ini' "$FOOT_INI"; then
+
+            # foot only honours include= before the first [section], and it wants
+            # a real path - so ours is absolute and goes above that first section
+            FOOT_INCLUDE="include=$HOME/.config/foot/lucid-colors.ini"
+            foot_include_ok() {
+                local sec inc
+                sec=$(grep -n '^\[' "$1" | cut -d: -f1 | head -n1 || true)
+                inc=$(grep -nxF "$FOOT_INCLUDE" "$1" | cut -d: -f1 | head -n1 || true)
+                [[ -n $inc ]] && { [[ -z $sec ]] || (( inc < sec )); }
+            }
+
+            if foot_include_ok "$FOOT_INI"; then
                 say "  ${dim}foot.ini already includes lucid-colors.ini${r}"
             else
-                printf '\n# added by Lucid — colours follow the active theme\ninclude=~/.config/foot/lucid-colors.ini\n' \
-                    >> "$FOOT_INI"
+                # an older Lucid appended this after the sections, where foot
+                # ignores it: drop any Lucid include line, then place it once,
+                # right before the first section
+                FOOT_TMP=$(mktemp)
+                grep -vxF -e 'include=~/.config/foot/lucid-colors.ini' \
+                    -e "$FOOT_INCLUDE" \
+                    -e '# added by Lucid — colours follow the active theme' \
+                    "$FOOT_INI" > "$FOOT_TMP" || true
+                awk -v inc="$FOOT_INCLUDE" '
+                    !placed && /^\[/ {
+                        print "# added by Lucid — colours follow the active theme"
+                        print inc
+                        print ""
+                        placed = 1
+                    }
+                    { print }
+                    END {
+                        if (!placed) {
+                            print "# added by Lucid — colours follow the active theme"
+                            print inc
+                        }
+                    }
+                ' "$FOOT_TMP" > "$FOOT_INI"
+                rm -f "$FOOT_TMP"
                 say "  foot.ini now includes lucid-colors.ini"
+                if foot_include_ok "$FOOT_INI"; then
+                    say "  ${dim}include sits above the first section${r}"
+                else
+                    say "  ${red}include is not above the first section - check foot.ini${r}"
+                fi
             fi
         fi
 
