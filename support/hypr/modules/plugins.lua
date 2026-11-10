@@ -1,7 +1,7 @@
 if hl.plugin.dynamic_cursors then
   hl.config { plugin = { dynamic_cursors = {
-    enabled   = true,
-    mode      = "rotate",   -- "tilt" | "rotate" | "stretch" | "none"
+    enabled   = false,
+    mode      = "none",   -- "tilt" | "rotate" | "stretch" | "none"
     threshold = 2,        -- min angle change (°) before redraw; lower = smoother
 
     rotate = {
@@ -41,8 +41,4 @@ if hl.plugin.dynamic_cursors then
       fallback   = "clientside",
     },
   }}}
-
-  -- optional per-shape overrides (server-side cursors only)
-  hl.plugin.dynamic_cursors.shape_rule { shape = "text", mode = "none" }
-  hl.plugin.dynamic_cursors.shape_rule { shape = "grab", mode = "stretch", stretch = { limit = 2000 } }
 end
