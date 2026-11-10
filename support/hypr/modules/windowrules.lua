@@ -2,6 +2,10 @@
 ---- WINDOWS AND WORKSPACES ----
 --------------------------------
 
+-- browsers and chat apps always open in their own special workspace
+hl.window_rule({ match = { class = "(?i)^(zen|helium|helium-browser)$" }, workspace = "special:special" })
+hl.window_rule({ match = { class = "(?i)^(vesktop|org\\.telegram\\.desktop|telegramdesktop)$" }, workspace = "special:comms" })
+
 local suppressMaximizeRule = hl.window_rule({
     name  = "suppress-maximize-events",
     match = { class = ".*" },
