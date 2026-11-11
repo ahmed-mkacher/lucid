@@ -131,6 +131,12 @@ if [[ "$MODE" == light ]] &&
     APPS="$WORK/apps.json"
 fi
 
+# the open terminals repaint from this on their next prompt: foot will not
+# reread its palette, and a wallpaper change should not wait for a new window
+"$HOME/.config/lucid/terminal-sequences.sh" "$APPS" > "$STATE_DIR/terminal.osc.tmp" 2>/dev/null \
+    && mv "$STATE_DIR/terminal.osc.tmp" "$STATE_DIR/terminal.osc" \
+    || rm -f "$STATE_DIR/terminal.osc.tmp"
+
 # split the config into what every template shares and one file per template;
 # [templates.x.y] belongs to x. the list gets index, name, input and output,
 # split by \037: a tab is whitespace to read, so an empty field would vanish

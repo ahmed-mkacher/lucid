@@ -1020,6 +1020,7 @@ if [[ $WITH_THEMING -eq 1 ]]; then
     install -m755 "$SRC/support/lucid/gen-light-palette.py" "$LUCID_DIR/gen-light-palette.py"
     install -m755 "$SRC/support/lucid/app-palette.py"      "$LUCID_DIR/app-palette.py"
     install -m755 "$SRC/support/lucid/set-mode.sh"         "$LUCID_DIR/set-mode.sh"
+    install -m755 "$SRC/support/lucid/terminal-sequences.sh" "$LUCID_DIR/terminal-sequences.sh"
     install -m755 "$SRC/support/lucid/sync-sddm.sh"        "$LUCID_DIR/sync-sddm.sh"
     install -m755 "$SRC/support/lucid/sync-starship.sh"    "$LUCID_DIR/sync-starship.sh"
     install -m755 "$SRC/support/lucid/setup-zen.sh"        "$LUCID_DIR/setup-zen.sh"
@@ -1028,6 +1029,16 @@ if [[ $WITH_THEMING -eq 1 ]]; then
     install -m755 "$SRC/support/wallpaper/set-wallpaper.sh" "$WALL_SCRIPT_DIR/set-wallpaper.sh"
     # rules you wrote are yours: only ever placed when there are none
     [[ -f "$LUCID_DIR/wallpaper-outputs.conf" ]] || install -m644 "$SRC/support/lucid/wallpaper-outputs.conf" "$LUCID_DIR/wallpaper-outputs.conf"
+
+    # a running foot only repaints if something tells it to; fish does at each
+    # prompt, the way a new window would. tmux eats the OSC, so panes are left
+    # to the terminal's own startup palette
+    FISH_CFG="$HOME/.config/fish/config.fish"
+    if [[ -f "$FISH_CFG" ]] && ! grep -q '>>> lucid: terminal colours' "$FISH_CFG"; then
+        cp "$FISH_CFG" "$FISH_CFG.backup-$STAMP"
+        printf '\n# >>> lucid: terminal colours\nfunction __lucid_terminal_colours --on-event fish_prompt\n    if not set -q TMUX\n        test -f ~/.cache/lucid/terminal.osc; and cat ~/.cache/lucid/terminal.osc\n    end\nend\n# <<< lucid: terminal colours\n' >> "$FISH_CFG"
+        say "  fish repaints the terminal palette at each prompt"
+    fi
     # the sddm theme lives outside $HOME, so it is the one thing here that
     # needs root. skipped entirely when sddm is not installed, and it never
     # switches the active theme - that stays the user's call. root keeps the
@@ -1191,6 +1202,15 @@ if [[ $WITH_THEMING -eq 1 ]]; then
     (( ${#MG_ADDED[@]} ))   && say "  matugen added:   ${MG_ADDED[*]}"                                || true
     (( ${#MG_KEPT[@]} ))    && say "  ${dim}matugen kept:    ${MG_KEPT[*]}${r}"                       || true
     (( ${#MG_SKIPPED[@]} )) && say "  ${dim}matugen skipped: ${MG_SKIPPED[*]} (not installed)${r}"    || true
+
+    # templates are replaced on every install; render them again with the
+    # colours the last change used, or an app keeps the palette an older
+    # template wrote (foot 1.28 rejects a [colors] section outright). a fresh
+    # install has no colours yet and renders on the first theme change
+    if [[ -x "$LUCID_DIR/render-templates.sh" && -s "$HOME/.cache/lucid/colours.json" ]]; then
+        "$LUCID_DIR/render-templates.sh" --again >/dev/null 2>&1 \
+            || warn "could not re-render the matugen templates; Settings > Theme has Render all"
+    fi
 
     # put keys under [section] of an ini file, creating the section - or the
     # file - when it isn't there
