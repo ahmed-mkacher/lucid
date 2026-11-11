@@ -1369,7 +1369,7 @@ PanelWindow {
                     var combo = Keybinds.tokens(group[gi].keys).join(" + ");
                     rows.push(dockWindow.makeRow("keybind", "bind-" + group[gi].id, Keybinds.displayDesc(group[gi]), combo, {
                         "glyph": "keyboard",
-                        "payload": combo
+                        "payload": group[gi].id
                     }));
                 }
             }
@@ -1505,7 +1505,7 @@ PanelWindow {
         } else if (row.kind === "command") {
             dockWindow.runCommand(row.payload);
         } else if (row.kind === "keybind") {
-            Quickshell.execDetached(["wl-copy", "--", row.payload]);
+            Quickshell.execDetached(["wl-copy", "--", row.title + ": " + row.subtitle]);
             dockWindow.menuOpen = false;
         } else if (row.kind === "web") {
             dockWindow.menuOpen = false;
@@ -1531,6 +1531,23 @@ PanelWindow {
             dockWindow.menuOpen = false;
         } else if (row.kind === "power") {
             dockWindow.requestPower(row.payload);
+        }
+    }
+
+    function keybindResult(index, modifiers) {
+        var row = resultsModel.get(index);
+        if (!row || row.kind !== "keybind")
+            return ;
+
+        if (modifiers & Qt.ControlModifier) {
+            Keybinds.trigger(row.payload);
+            dockWindow.menuOpen = false;
+            return ;
+        }
+        if (modifiers & Qt.ShiftModifier) {
+            dockWindow.menuOpen = false;
+            Prefs.settingsRequested("keybinds");
+            Keybinds.editRequested(row.payload);
         }
     }
 
@@ -3179,6 +3196,7 @@ PanelWindow {
                 armedPower: dockWindow.armedPower
                 onPowerChipTapped: (id) => dockWindow.requestPower(id)
                 onActivated: (index) => dockWindow.activateResult(index)
+                onKeybindActionRequested: (index, modifiers) => dockWindow.keybindResult(index, modifiers)
                 onCloseRequested: dockWindow.menuOpen = false
                 onBackRequested: dockWindow.setSearchText(dockWindow.mode === "commands" ? "" : ">")
                 onModeRequested: (m) => {

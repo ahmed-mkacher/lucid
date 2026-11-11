@@ -239,6 +239,48 @@ Singleton {
         return null;
     }
 
+    // replay a bind through Hyprland; false when it is not a plain key chord
+    function trigger(id) {
+        var b = root.find(id);
+        if (!b || b.enabled === false)
+            return false;
+
+        var parts = String(b.keys || "").split("+").map((p) => {
+            return p.trim();
+        }).filter((p) => {
+            return p !== "";
+        });
+        var mods = [];
+        var key = "";
+        var keys = 0;
+        for (var i = 0; i < parts.length; i++) {
+            var u = parts[i].toUpperCase();
+            if (u === "CONTROL")
+                u = "CTRL";
+
+            if (u === "WIN" || u === "LOGO" || u === "MOD4")
+                u = "SUPER";
+
+            if (["SUPER", "CTRL", "ALT", "SHIFT"].indexOf(u) !== -1) {
+                if (mods.indexOf(u) === -1)
+                    mods.push(u);
+
+            } else {
+                key = parts[i];
+                keys++;
+            }
+        }
+        if (keys !== 1)
+            return false;
+
+        var lower = key.toLowerCase();
+        if (lower === "{key}" || lower.indexOf("mouse:") === 0)
+            return false;
+
+        Hyprland.dispatch("hl.dsp.send_shortcut{ mods = \"" + mods.join(" ") + "\", key = \"" + key + "\" }");
+        return true;
+    }
+
     function indexOf(id) {
         for (var i = 0; i < root.binds.length; i++) {
             if (root.binds[i].id === id)

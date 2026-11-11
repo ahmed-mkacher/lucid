@@ -126,6 +126,7 @@ Item {
         case "calc":
         case "emoji":
         case "clip":
+        case "keybind":
             return "Copy";
         case "theme":
             return "Apply";

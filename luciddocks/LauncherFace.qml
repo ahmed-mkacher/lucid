@@ -146,6 +146,7 @@ Item {
     signal powerChipTapped(string id)
 
     signal activated(int index)
+    signal keybindActionRequested(int index, int modifiers)
     signal closeRequested()
     // "wallpaper" or "live", from the switch beside the picker
     signal pickerKindRequested(string kind)
@@ -225,13 +226,18 @@ Item {
         face.modeRequested(next.key);
     }
 
-    function submit() {
+    function submit(modifiers) {
         if (face.pickerMode) {
             if (wallStrip)
                 wallStrip.activateCurrent();
 
-        } else
-            resultList.activateCurrent();
+            return ;
+        }
+        if (face.displayMode === "keybinds" && (modifiers & (Qt.ControlModifier | Qt.ShiftModifier)) && resultList.isSelectable(resultList.currentIndex)) {
+            face.keybindActionRequested(resultList.currentIndex, modifiers);
+            return ;
+        }
+        resultList.activateCurrent();
     }
 
     onModeChanged: face.requestModeTransition()
@@ -730,8 +736,8 @@ Item {
                 event.accepted = true;
             }
             Keys.onEscapePressed: face.closeRequested()
-            Keys.onReturnPressed: face.submit()
-            Keys.onEnterPressed: face.submit()
+            Keys.onReturnPressed: (event) => face.submit(event.modifiers)
+            Keys.onEnterPressed: (event) => face.submit(event.modifiers)
 
             // the placeholder rolls over when the mode changes, rather than cutting
             LText {
