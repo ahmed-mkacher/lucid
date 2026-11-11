@@ -1155,6 +1155,8 @@ if [[ $WITH_THEMING -eq 1 ]]; then
     add_template hyprland       "$TPL/hyprland-colors.lua"     '~/.config/hypr/colors.conf'    "dir:$HOME/.config/hypr"
     add_template kitty          "$TPL/kitty.conf"              '~/.config/kitty/matugen-colors.conf' "cmd:kitty" 'killall -SIGUSR1 kitty 2>/dev/null || true'
     add_template foot           "$TPL/foot.ini"                '~/.config/foot/lucid-colors.ini' "cmd:foot"
+    add_template tmux            "$TPL/tmux.tmuxtheme"         '~/.config/tmux/plugins/catppuccin-tmux/catppuccin-caelestia.tmuxtheme' "dir:$HOME/.config/tmux/plugins/catppuccin-tmux" 'tmux source-file ~/.config/tmux/tmux.conf 2>/dev/null || true'
+    add_template opencode        "$TPL/opencode.json"          '~/.config/opencode/themes/lucid.json' "cmd:opencode"
     # no dir: guard on these two. gtk only creates ~/.config/gtk-{3,4}.0 once
     # an app writes a setting there, so on a fresh machine the guard skipped
     # both templates, matugen never wrote colors.css, and nautilus kept its

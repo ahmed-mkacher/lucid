@@ -1,0 +1,17 @@
+# Lucid: tmux's catppuccin "caelestia" flavour, repainted from the active palette
+# by render-templates.sh. catppuccin.tmux sources this file at load.
+thm_bg="{{colors.surface.default.hex}}"
+thm_fg="{{colors.on_surface.default.hex}}"
+
+thm_black="{{colors.surface.default.hex}}"
+thm_black4="{{colors.surface_variant.default.hex}}"
+thm_gray="{{colors.surface_container_high.default.hex}}"
+
+thm_red="{{colors.error.default.hex}}"
+thm_green="{{colors.tertiary_fixed_dim.default.hex}}"
+thm_yellow="{{colors.secondary_fixed_dim.default.hex}}"
+thm_blue="{{colors.primary.default.hex}}"
+thm_magenta="{{colors.tertiary.default.hex}}"
+thm_pink="{{colors.secondary.default.hex}}"
+thm_cyan="{{colors.primary_fixed_dim.default.hex}}"
+thm_orange="{{colors.primary_fixed_dim.default.hex}}"
