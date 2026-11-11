@@ -513,21 +513,27 @@ fi
 # WANTED repeats a name when a picked app is one Lucid already needs, so each
 # is shown once. missing is filled here, in the same pass, for the steps below
 want_lines() {
-    local p st
+    local p
     local -A shown=()
+    local have=()
     missing=()
-    say "  what Lucid wants:"
     for p in "${WANTED[@]}"; do
         [[ -n ${shown[$p]:-} ]] && continue
         shown[$p]=1
-        st=missing
         if have_pkg "$p"; then
-            st=installed
+            have+=("$p")
         else
             missing+=("$p")
         fi
-        printf '    %-26s %-10s %s\n' "$p" "$st" "${PKG_WHY[$p]:-picked from the app list}"
     done
+    if (( ${#have[@]} )); then
+        say "  already installed:"
+        why_lines "${have[@]}"
+    fi
+    if (( ${#missing[@]} )); then
+        say "  to install:"
+        why_lines "${missing[@]}"
+    fi
 }
 
 want_lines
