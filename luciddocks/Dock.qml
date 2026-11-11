@@ -977,6 +977,17 @@ PanelWindow {
         };
     })
 
+    function powerRow(cmd) {
+        var armed = dockWindow.armedPower === cmd.id;
+        var desc = cmd.desc;
+        if (armed)
+            desc = "Press Return again to " + cmd.confirm;
+        return dockWindow.makeRow("power", "pow-" + cmd.id, cmd.name, desc, {
+            "glyph": cmd.glyph,
+            "payload": cmd.id
+        });
+    }
+
     // 100 at the start, 90 at a word start, 80 anywhere, -1 when absent
     function textScore(text, q) {
         var at = text.indexOf(q);
@@ -1123,6 +1134,9 @@ PanelWindow {
             ranked = ranked.concat(dockWindow.byRank(wins).slice(0, 6));
         }
         for (var m = 0; m < dockWindow.allCommands.length; m++) {
+            if (dockWindow.allCommands[m].id === "power")
+                continue;
+
             var cs = dockWindow.commandScore(dockWindow.allCommands[m], q);
             if (cs >= 0)
                 ranked.push({
@@ -1210,11 +1224,7 @@ PanelWindow {
                     "payload": it.cmd.id
                 }));
             } else if (it.kind === "power") {
-                var armed = dockWindow.armedPower === it.cmd.id;
-                rows.push(dockWindow.makeRow("power", "pow-" + it.cmd.id, it.cmd.name, armed ? "Press Return again to " + it.cmd.confirm : it.cmd.desc, {
-                    "glyph": it.cmd.glyph,
-                    "payload": it.cmd.id
-                }));
+                rows.push(dockWindow.powerRow(it.cmd));
             }
         }
     }
@@ -1223,7 +1233,10 @@ PanelWindow {
     property string armedPower: ""
 
     onArmedPowerChanged: {
-        if (dockWindow.menuOpen && dockWindow.mode === "apps" && dockWindow.filterQuery !== "")
+        if (!dockWindow.menuOpen)
+            return;
+
+        if (dockWindow.mode === "commands" || (dockWindow.mode === "apps" && dockWindow.filterQuery !== ""))
             dockWindow.rebuildResults();
 
     }
@@ -1330,6 +1343,14 @@ PanelWindow {
         } else if (mode === "commands") {
             for (var c = 0; c < dockWindow.allCommands.length; c++) {
                 var cmd = dockWindow.allCommands[c];
+                if (cmd.id === "power") {
+                    for (var pc = 0; pc < dockWindow.powerCommands.length; pc++) {
+                        var pcmd = dockWindow.powerCommands[pc];
+                        if (q === "" || pcmd.name.toLowerCase().indexOf(q) !== -1)
+                            rows.push(dockWindow.powerRow(pcmd));
+                    }
+                    continue;
+                }
                 if (q === "" || cmd.name.toLowerCase().indexOf(q) !== -1)
                     rows.push(dockWindow.makeRow("command", "cmd-" + cmd.id, cmd.name, cmd.desc, {
                         "glyph": cmd.glyph,
@@ -1580,9 +1601,6 @@ PanelWindow {
             dockWindow.setSearchText(">wallpaper");
         } else if (id === "theme") {
             dockWindow.setSearchText(">theme");
-        } else if (id === "power") {
-            dockWindow.menuOpen = false;
-            dockWindow.openSession();
         } else if (id === "clipboard") {
             dockWindow.setSearchText(">clip");
         } else if (id === "shuffle") {
