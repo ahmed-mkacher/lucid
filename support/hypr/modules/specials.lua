@@ -68,16 +68,37 @@ local function roams(app)
     return false
 end
 
+-- a key that starts an app marks its workspace, and the window that lands
+-- there brings the workspace up with it, instead of leaving it empty
+local starts = {}
 local launches = {}
 
 hl.on("window.open", function(w)
     if not w then return end
     local now = os.time()
+    for name, at in pairs(starts) do
+        local target = "special:" .. name
+        if now - at > 30 then
+            starts[name] = nil
+        elseif w.workspace and w.workspace.name == target then
+            starts[name] = nil
+            hl.dispatch(hl.dsp.focus({ workspace = target }))
+            hl.dispatch(hl.dsp.focus({ window = w }))
+        end
+    end
     for name, l in pairs(launches) do
+        local target = "special:" .. name
         if now - l.at > 60 then
             launches[name] = nil
-        elseif owns(l.app, w) and not (w.workspace and w.workspace.name == "special:" .. name) then
-            hl.dispatch(hl.dsp.window.move({ window = w, workspace = "special:" .. name, follow = false }))
+        elseif owns(l.app, w) then
+            if not (w.workspace and w.workspace.name == target) then
+                hl.dispatch(hl.dsp.window.move({ window = w, workspace = target, follow = false }))
+            end
+            if starts[name] then
+                starts[name] = nil
+                hl.dispatch(hl.dsp.focus({ workspace = target }))
+                hl.dispatch(hl.dsp.focus({ window = w }))
+            end
         end
     end
 end)
@@ -135,7 +156,8 @@ function M.apply()
 end
 
 -- open a workspace and hide it again if already up. M.toggle also starts the
--- workspace's apps; M.show only pulls in apps already running.
+-- workspace's apps; M.show only pulls in apps already running. one with
+-- nothing to show yet waits for its first window instead of coming up empty
 local function open(name, launch)
     local target = "special:" .. name
     local cfg = config()
@@ -146,14 +168,16 @@ local function open(name, launch)
         hl.dispatch(hl.dsp.workspace.toggle_special(name))
         return
     end
-    hl.dispatch(hl.dsp.focus({ workspace = target }))
     local wins = hl.get_windows() or {}
+    local any = false
+    local starting = false
     local pulled = nil
     for _, app in ipairs(ws.apps or {}) do
         local running = false
         for _, w in ipairs(wins) do
             if owns(app, w) then
                 running = true
+                any = true
                 if cfg.keep ~= false and not (w.workspace and w.workspace.name == target) then
                     hl.dispatch(hl.dsp.window.move({ window = w, workspace = target, follow = false }))
                     pulled = pulled or w
@@ -161,12 +185,18 @@ local function open(name, launch)
             end
         end
         if launch and not running and type(app.cmd) == "string" and app.cmd ~= "" then
+            starting = true
             if roams(app) then launches[name] = { app = app, at = os.time() } end
             hl.dispatch(hl.dsp.exec_cmd(app.cmd, { workspace = target }))
         end
     end
-    -- a window moved in without follow leaves the keyboard behind the dim
-    if pulled then hl.dispatch(hl.dsp.focus({ window = pulled })) end
+    if any or not starting then
+        hl.dispatch(hl.dsp.focus({ workspace = target }))
+        -- a window moved in without follow leaves the keyboard behind the dim
+        if pulled then hl.dispatch(hl.dsp.focus({ window = pulled })) end
+    else
+        starts[name] = os.time()
+    end
 end
 
 function M.toggle(name)
@@ -179,15 +209,12 @@ function M.show(name)
 end
 
 -- start one app in a workspace without toggling away a workspace already up.
--- the browser key uses it to open Zen in the scratchpad
+-- the browser key uses it to open Zen in the scratchpad, which comes up with
+-- the window instead of waiting empty
 function M.launch(name, cmd)
     return function()
-        local target = "special:" .. name
-        local shown = hl.get_active_special_workspace()
-        if not (shown and shown.name == target) then
-            hl.dispatch(hl.dsp.focus({ workspace = target }))
-        end
-        hl.dispatch(hl.dsp.exec_cmd(cmd, { workspace = target }))
+        starts[name] = os.time()
+        hl.dispatch(hl.dsp.exec_cmd(cmd, { workspace = "special:" .. name }))
     end
 end
 

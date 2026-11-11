@@ -599,10 +599,12 @@ the same keys.
 | `SUPER` + `X` | System | btop in a terminal, Mission Center, Resources… |
 
 A key shows its workspace, pulls in its apps if they are running, and hides it
-again when pressed once more. `SUPER` + `SHIFT` + the same key moves the focused
-window there. Browsers, chat apps and notes apps open in their workspace on
-their own, whether launched from the key, the launcher or the dock. `SUPER` + `W`
-opens the scratchpad and starts Zen in it.
+again when pressed once more. When a key has to start an app, it waits and
+comes up with that app's window rather than an empty workspace. `SUPER` + `SHIFT`
++ the same key moves the focused window there. Browsers, chat apps and notes
+apps open in their workspace on their own, whether launched from the key, the
+launcher or the dock. `SUPER` + `W` starts Zen in the scratchpad and focuses it
+once it opens.
 
 **Settings → Workspaces** picks each one's apps, turns any of them off, and sets
 how far the screen behind dims, whether it blurs too, how much margin the windows
