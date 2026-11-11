@@ -12,10 +12,10 @@ Singleton {
 
     readonly property var actions: [
         { "id": "lock", "label": "Lock", "icon": "lock" },
-        { "id": "suspend", "label": "Suspend", "icon": "bedtime" },
+        { "id": "suspend", "label": "Sleep", "icon": "bedtime" },
         { "id": "logout", "label": "Log out", "icon": "logout" },
-        { "id": "reboot", "label": "Restart", "icon": "restart_alt" },
-        { "id": "shutdown", "label": "Shut down", "icon": "power_settings_new" }
+        { "id": "reboot", "label": "Reboot", "icon": "restart_alt" },
+        { "id": "shutdown", "label": "Power off", "icon": "power_settings_new" }
     ]
 
     readonly property int profile: PowerProfiles.profile

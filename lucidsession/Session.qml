@@ -42,20 +42,20 @@ PanelWindow {
         "ask": "Log out and close everything?"
     }, {
         "id": "reboot",
-        "label": "Restart",
+        "label": "Reboot",
         "icon": "restart_alt",
         "shape": "cookie9",
         "key": Qt.Key_R,
         "hint": "R",
-        "ask": "Restart now?"
+        "ask": "Reboot now?"
     }, {
         "id": "shutdown",
-        "label": "Shut down",
+        "label": "Power off",
         "icon": "power_settings_new",
         "shape": "sunny",
         "key": Qt.Key_P,
         "hint": "P",
-        "ask": "Shut down now?"
+        "ask": "Power off now?"
     }]
     readonly property string who: Users.me ? Users.displayName(Users.me).split(" ")[0] : Quickshell.env("USER")
 

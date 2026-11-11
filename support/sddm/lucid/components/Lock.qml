@@ -286,7 +286,7 @@ QtObject {
         if (sddm.canSuspend)
             out.push({
                 "id": "suspend",
-                "label": "Suspend",
+                "label": "Sleep",
                 "glyph": "suspend",
                 "confirm": false
             });
@@ -301,13 +301,13 @@ QtObject {
 
         out.push({
             "id": "reboot",
-            "label": "Restart",
+            "label": "Reboot",
             "glyph": "restart",
             "confirm": true
         });
         out.push({
             "id": "shutdown",
-            "label": "Shut down",
+            "label": "Power off",
             "glyph": "power",
             "confirm": true
         });

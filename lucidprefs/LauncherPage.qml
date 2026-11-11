@@ -228,7 +228,7 @@ Column {
         SettingRow {
             title: "Power buttons by the search field"
             resetKey: "launcherPowerChips"
-            description: "Round buttons at the end of the search field while nothing is typed. Restart, shut down and log out turn red on the first press and act on the second."
+            description: "Round buttons at the end of the search field while nothing is typed. Reboot, power off and log out turn red on the first press and act on the second."
 
             M3Switch {
                 checked: Prefs.launcherPowerChips
@@ -363,7 +363,7 @@ Column {
         SettingRow {
             title: "Power actions in results"
             resetKey: "launcherPowerSearch"
-            description: "Lock, suspend, log out, restart and shut down turn up when you type them, from three letters. Restart, shut down and log out ask for a second Return."
+            description: "Lock, sleep, log out, reboot and power off turn up when you type them, from three letters. Reboot, power off and log out ask for a second Return."
 
             M3Switch {
                 checked: Prefs.launcherPowerSearch

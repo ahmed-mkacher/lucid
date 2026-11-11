@@ -33,7 +33,7 @@ SettingCard {
         "label": "Lock"
     }, {
         "id": "suspend",
-        "label": "Suspend"
+        "label": "Sleep"
     }, {
         "id": "hibernate",
         "label": "Hibernate",
@@ -43,10 +43,10 @@ SettingCard {
         "label": "Log out"
     }, {
         "id": "reboot",
-        "label": "Restart"
+        "label": "Reboot"
     }, {
         "id": "shutdown",
-        "label": "Shut down"
+        "label": "Power off"
     }]
     readonly property var powerOn: String(Prefs.powerModuleActions || "").split(",").filter((id) => {
         return card.powerCatalogue.some((a) => {

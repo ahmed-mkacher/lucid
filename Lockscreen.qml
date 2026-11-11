@@ -794,7 +794,7 @@ Singleton {
     readonly property var powerActions: [
         {
             "id": "suspend",
-            "label": "Suspend",
+            "label": "Sleep",
             "glyph": "suspend",
             "confirm": false
         },
@@ -812,13 +812,13 @@ Singleton {
         },
         {
             "id": "reboot",
-            "label": "Restart",
+            "label": "Reboot",
             "glyph": "restart",
             "confirm": true
         },
         {
             "id": "shutdown",
-            "label": "Shut down",
+            "label": "Power off",
             "glyph": "power",
             "confirm": true
         }

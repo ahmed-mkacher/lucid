@@ -567,7 +567,7 @@ PanelWindow {
     }, {
         "id": "power",
         "name": "Power",
-        "desc": "The full-screen way out: lock, sleep, log out, restart",
+        "desc": "Lock, sleep, log out, reboot, power off",
         "glyph": DockIcons.power
     }, {
         "id": "widgets",
@@ -957,7 +957,7 @@ PanelWindow {
         });
     }
 
-    // found by a typed search, beside the apps. restart, shut down and log out
+    // found by a typed search, beside the apps. reboot, power off and log out
     // want a second Return, as on the session screen
     readonly property var powerCommands: Power.actions.map((a) => {
         const more = {
@@ -1133,7 +1133,7 @@ PanelWindow {
             });
 
         }
-        // never from two letters: "re" shouldn't put Restart one Return away
+        // never from two letters: "re" shouldn't put Reboot one Return away
         if (Prefs.launcherPowerSearch && q.length >= 3) {
             for (var pw = 0; pw < dockWindow.powerCommands.length; pw++) {
                 var ps = dockWindow.commandScore(dockWindow.powerCommands[pw], q);

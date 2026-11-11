@@ -27,7 +27,7 @@ BarPill {
         "confirm": false
     }, {
         "id": "suspend",
-        "label": "Suspend",
+        "label": "Sleep",
         "icon": "suspend",
         "confirm": false
     }, {
@@ -42,12 +42,12 @@ BarPill {
         "confirm": true
     }, {
         "id": "reboot",
-        "label": "Restart",
+        "label": "Reboot",
         "icon": "reboot",
         "confirm": true
     }, {
         "id": "shutdown",
-        "label": "Shut down",
+        "label": "Power off",
         "icon": "power",
         "confirm": true
     }]
