@@ -2048,7 +2048,7 @@ PanelWindow {
     visible: Monitors.surfacesUp
     margins.bottom: 0
     exclusiveZone: (!Prefs.loaded || !Prefs.dockEnabled || Prefs.dockAutoHide) ? 0 : (shell.implicitHeight + Prefs.effectiveDockBottomMargin + Prefs.shellGap)
-    WlrLayershell.keyboardFocus: dockWindow.menuOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: dockWindow.menuOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     WlrLayershell.layer: dockWindow.menuOpen ? WlrLayer.Overlay : WlrLayer.Top
     color: "transparent"
     implicitWidth: Math.max(dockWindow.maxDockWidth, dockWindow.menuWidth)
@@ -3187,7 +3187,8 @@ PanelWindow {
             height: dockWindow.menuHeight - dockWindow.panelPadding
             anchors.centerIn: parent
             opacity: dockWindow.menuOpen ? 1 : 0
-            visible: launcherLoader.opacity > 0
+            // visible at open so focus lands before the fade; opacity keeps it through the close fade
+            visible: dockWindow.menuOpen || launcherLoader.opacity > 0
 
             sourceComponent: LauncherFace {
                 targetWidth: dockWindow.menuWidth - dockWindow.panelPadding
