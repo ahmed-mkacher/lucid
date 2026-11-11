@@ -229,8 +229,8 @@ installing to pick them up.
 | `SUPER` + `SHIFT` + `X` | Move window to system monitor workspace |
 | `SUPER` + arrows | Move focus |
 | `CTRL` + `ALT` + `R` | Reload Hyprland |
-| `F1`–`F6` | Volume, mic, brightness |
-| `F10` | Lock |
+| `SUPER` + `F1`–`F6` | Volume, mic, brightness |
+| `SUPER` + `F10` | Lock |
 
 Ran with `--no-hypr`, or want to bind things yourself? Everything is exposed
 over IPC:

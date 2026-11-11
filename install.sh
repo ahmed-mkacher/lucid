@@ -1679,7 +1679,7 @@ if [[ $HYPR_LUA_INSTALLED -eq 1 ]]; then
     SUPER+P          commands        SUPER+E      files
     SUPER+C          close window    SUPER+V      float
     SUPER+Return     terminal        SUPER+W      Zen browser
-    SUPER+Escape     session         F10          lock
+    SUPER+Escape     session         SUPER+F10    lock
     CTRL+ALT+R       reload hypr     CTRL+ALT+TAB switch windows
 
   Special workspaces slide over whatever you are on; the same keys hide them.
