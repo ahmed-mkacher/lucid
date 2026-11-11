@@ -87,26 +87,9 @@ Scope {
             host.show("bar");
         }
 
-        // qs ipc call settings bartoggle
-        function bartoggle(): void {
-            Prefs.barEnabled = !Prefs.barEnabled;
-        }
-
-        function baron(): void {
-            Prefs.barEnabled = true;
-        }
-
-        function baroff(): void {
-            Prefs.barEnabled = false;
-        }
-
         // qs ipc call settings barautohide  — sticky bar <-> auto-hide
         function barautohide(): void {
             Prefs.barAutoHide = !Prefs.barAutoHide;
-        }
-
-        function barstick(): void {
-            Prefs.barAutoHide = false;
         }
 
         function dock(): void {

@@ -631,6 +631,7 @@ Singleton {
     property alias barFullCorner: s.barFullCorner
     property alias barHoverOpen: s.barHoverOpen
     property alias barAutoHide: s.barAutoHide
+    property alias barDynamicHide: s.barDynamicHide
     property alias dockNotchFlare: s.dockNotchFlare
     property alias dockSplitGap: s.dockSplitGap
     property alias dockAutoHide: s.dockAutoHide
@@ -847,7 +848,7 @@ Singleton {
         { "key": "colours", "icon": "format_color_fill", "keys": "matugen style scheme contrast your colour hex picker templates apps render variables", "group": "Appearance", "label": "Colours", "title": "Colours", "blurb": "How Matugen and Your colour build a palette, the applications that follow it, and templates of your own" },
         { "key": "palettes", "icon": "colors", "keys": "gallery schemes base16 base24 tinted import repo file editor export", "group": "Appearance", "label": "Palettes", "title": "Palettes", "blurb": "A gallery of colour schemes, and themes from a repo or a file" },
         { "key": "environment", "icon": "format_paint", "keys": "cursor icons gtk qt fonts application theme", "group": "Appearance", "label": "Environment", "title": "Environment", "blurb": "Cursors, icons, fonts and application themes, across GTK, Qt and Hyprland alike" },
-        { "key": "bar", "icon": "toolbar", "keys": "status height margin spacing modules workspaces clock media tray system popup full hover auto-hide autohide corners", "group": "Desktop", "label": "Bar", "title": "Bar", "blurb": "The status bar, its modules and how they open", "toggle": "barEnabled" },
+        { "key": "bar", "icon": "toolbar", "keys": "status height margin spacing modules workspaces clock media tray system popup full hover auto-hide autohide dynamic corners", "group": "Desktop", "label": "Bar", "title": "Bar", "blurb": "The status bar, its modules and how they open", "toggle": "barEnabled" },
         { "key": "dock", "icon": "dock_to_bottom", "keys": "icons size magnify autohide dynamic hiding pinned running indicators tooltips windows notch radius corners rounding padding inset", "group": "Desktop", "label": "Dock", "title": "Dock", "blurb": "The dock, its icons and how it behaves", "toggle": "dockEnabled" },
         { "key": "launcher", "icon": "search", "keys": "launcher search spotlight apps results width density rows chips modes prefix engine web emoji run clipboard calculator frequent recent", "group": "Desktop", "label": "Launcher", "title": "Launcher", "blurb": "The search panel the dock opens into: how wide it is, how its results read, and what it looks through" },
         { "key": "widgets", "icon": "widgets", "keys": "desktop cards clock calendar weather presets", "group": "Desktop", "label": "Widgets", "title": "Widgets", "blurb": "Cards you place on the desktop and arrange yourself", "toggle": "widgetsEnabled" },
@@ -1127,6 +1128,7 @@ Singleton {
         "barFullCorner": 18,
         "barHoverOpen": false,
         "barAutoHide": false,
+        "barDynamicHide": false,
         "dockNotchFlare": 14,
         "dockSplitGap": 8,
         "dockAutoHide": false,
@@ -1857,6 +1859,7 @@ Singleton {
             property int barFullCorner: 18
             property bool barHoverOpen: false
             property bool barAutoHide: false
+            property bool barDynamicHide: false
             property int dockNotchFlare: 14
             property int dockSplitGap: 8
             property bool dockAutoHide: false

@@ -11,7 +11,7 @@ Rectangle {
     readonly property var shown: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
     readonly property real screenW: preview.shown ? preview.shown.width : 1920
     readonly property real screenH: preview.shown ? preview.shown.height : 1080
-    readonly property real reserved: (Prefs.barEnabled && !Prefs.barAutoHide) ? Theme.dp(Prefs.barHeight) : 0
+    readonly property real reserved: (Prefs.barEnabled && (!Prefs.barAutoHide || Prefs.barDynamicHide)) ? Theme.dp(Prefs.barHeight) : 0
     // a close look shows the left three fifths, so a 2 px border still shows
     readonly property real zoom: screen.width / (preview.screenW * preview.viewFraction)
     readonly property real gapsIn: HyprConfig.num("general.gaps_in", 5)
@@ -37,7 +37,7 @@ Rectangle {
     // the work area, in screen pixels
     readonly property real areaX: preview.gapsOutShown
     // the bar's own distance from windows comes on top of hyprland's
-    readonly property real shellGap: (Prefs.barEnabled && !Prefs.barAutoHide) ? Prefs.shellGap : 0
+    readonly property real shellGap: (Prefs.barEnabled && (!Prefs.barAutoHide || Prefs.barDynamicHide)) ? Prefs.shellGap : 0
     readonly property real areaY: preview.reserved + preview.shellGap + preview.gapsOutShown
     readonly property real areaW: preview.screenW - 2 * preview.gapsOutShown
     readonly property real areaH: preview.screenH - preview.reserved - preview.shellGap - 2 * preview.gapsOutShown

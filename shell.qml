@@ -18,6 +18,7 @@ import "./lucidupdate"
 import "./lucidwidgets"
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 
@@ -576,14 +577,84 @@ ShellRoot {
             // regardless of the pointer. held: the pointer is on the reveal
             // strip or already on a module - either keeps it from hiding
             readonly property bool barBusy: bar.modules.some((m) => {
-                return m.expanded === true || m.anyOpen === true || m.overlayOpen === true;
-            }) || workspacesMod.expanded
+                return m.expanded === true || m.anyOpen === true;
+            })
             property bool slidingAway: false
             readonly property bool heldByPointer: revealArea.containsMouse || (!bar.slidingAway && bar.modules.some((m) => {
                 return m.visible && (m.surfaceHovered === true || m.compactHovered === true);
-            })) || workspacesMod.expanded
-            readonly property bool barRevealed: !Prefs.barAutoHide || bar.barBusy || bar.heldByPointer
+            }))
+            readonly property bool autoHiding: Prefs.barAutoHide && (!Prefs.barDynamicHide || bar.dynamicHidden)
+            readonly property bool barRevealed: !bar.autoHiding || bar.barBusy || bar.heldByPointer
             readonly property int barWindowTop: Prefs.barAutoHide ? 0 : Prefs.effectiveBarTopMargin
+
+            // dynamic hiding mirrors the dock: away only while a window is in the way
+            readonly property var barMonitor: Hyprland.monitorFor(bar.screen) || Hyprland.focusedMonitor
+            readonly property string shownSpecial: {
+                const o = bar.barMonitor ? bar.barMonitor.lastIpcObject : null;
+                return o && o.specialWorkspace && o.specialWorkspace.name ? o.specialWorkspace.name : "";
+            }
+            readonly property rect barFootprint: {
+                const s = bar.screen;
+                if (!s)
+                    return Qt.rect(0, 0, 0, 0);
+
+                return Qt.rect(s.x, s.y, s.width, Theme.dp(Prefs.barHeight) + Prefs.effectiveBarTopMargin);
+            }
+            readonly property var windowsOnScreen: {
+                const out = {
+                    "inTheWay": false
+                };
+                const spaces = [bar.barMonitor ? bar.barMonitor.activeWorkspace : null];
+                if (bar.shownSpecial !== "") {
+                    for (const w of Hyprland.workspaces.values) {
+                        if (w.name === bar.shownSpecial)
+                            spaces.push(w);
+                    }
+                }
+                for (const ws of spaces) {
+                    if (!ws || !ws.toplevels)
+                        continue;
+
+                    for (const t of ws.toplevels.values) {
+                        const o = t.lastIpcObject;
+                        if (!o || !o.at || !o.size || o.hidden)
+                            continue;
+
+                        if (bar.inTheWay(o))
+                            out.inTheWay = true;
+                    }
+                }
+                return out;
+            }
+            readonly property bool workspaceBusy: bar.windowsOnScreen.inTheWay
+            readonly property bool dynamicWanted: Prefs.barAutoHide && Prefs.barDynamicHide && bar.workspaceBusy
+            property bool dynamicHidden: false
+            readonly property int dynamicHideDelay: 350
+            readonly property int dynamicShowDelay: 500
+
+            function inTheWay(o) {
+                if (!o.floating || o.fullscreen)
+                    return true;
+
+                const r = bar.barFootprint;
+                return o.at[0] < r.x + r.width && o.at[0] + o.size[0] > r.x && o.at[1] < r.y + r.height && o.at[1] + o.size[1] > r.y;
+            }
+
+            onDynamicWantedChanged: {
+                if (bar.dynamicHidden === bar.dynamicWanted) {
+                    dynamicDelay.stop();
+                    return ;
+                }
+                dynamicDelay.interval = bar.dynamicWanted ? bar.dynamicHideDelay : bar.dynamicShowDelay;
+                dynamicDelay.restart();
+            }
+
+            Timer {
+                id: dynamicDelay
+
+                onTriggered: bar.dynamicHidden = bar.dynamicWanted
+            }
+
             // how far the compact content sits above its resting y=0 while
             // hidden - past the window's own top edge, so it clips away for free
             property real hiddenOffset: Prefs.barAutoHide ? (bar.barRevealed ? Prefs.effectiveBarTopMargin : -(Theme.dp(Prefs.barHeight) + Theme.dp(1))) : 0

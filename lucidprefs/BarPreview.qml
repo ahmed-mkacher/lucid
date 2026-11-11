@@ -348,7 +348,7 @@ Rectangle {
         anchors.rightMargin: Theme.dp(22)
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Theme.dp(20)
-        text: (Prefs.barFull ? "Full bar" : Prefs.barNotch ? "Notches" : "Islands") + "  ·  " + (Prefs.barPopupMode ? (screen.notchedPopup ? "notched pop-up" : "pop-up") : "morph") + (Prefs.barAutoHide ? "  ·  auto-hide" : "")
+        text: (Prefs.barFull ? "Full bar" : Prefs.barNotch ? "Notches" : "Islands") + "  ·  " + (Prefs.barPopupMode ? (screen.notchedPopup ? "notched pop-up" : "pop-up") : "morph") + (Prefs.barAutoHide ? (Prefs.barDynamicHide ? "  · dynamic hiding" : "  · auto-hide") : "")
         color: Theme.subtext
         font.family: Theme.fontFamily
         font.pixelSize: Theme.fontLabel

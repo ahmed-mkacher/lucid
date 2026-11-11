@@ -1,6 +1,7 @@
 {
     "accentPunch": 1,
     "barAutoHide": false,
+    "barDynamicHide": false,
     "barEnabled": true,
     "barFullCorner": 18,
     "barHeight": 35,

@@ -105,13 +105,25 @@ Column {
 
         SettingRow {
             title: "Auto-hide"
-            resetKey: "barAutoHide"
-            description: "The bar slides off the top of the screen and comes back when the pointer reaches the edge, or while one of its panels is open. Windows use the space it leaves."
+            description: "Always slides the bar off the top of the screen until the pointer reaches the edge. Dynamic only does it while a tiled window is open on the workspace, or a floating one overlaps the bar, so it is back whenever the desktop is clear."
+            stacked: true
 
-            M3Switch {
-                checked: Prefs.barAutoHide
-                onToggled: (v) => {
-                    return Prefs.barAutoHide = v;
+            M3Segmented {
+                width: parent.width
+                current: !Prefs.barAutoHide ? "off" : (Prefs.barDynamicHide ? "dynamic" : "always")
+                options: [{
+                    "key": "off",
+                    "label": "Off"
+                }, {
+                    "key": "always",
+                    "label": "Always"
+                }, {
+                    "key": "dynamic",
+                    "label": "Dynamic"
+                }]
+                onChosen: (k) => {
+                    Prefs.barAutoHide = k !== "off";
+                    Prefs.barDynamicHide = k === "dynamic";
                 }
             }
 
